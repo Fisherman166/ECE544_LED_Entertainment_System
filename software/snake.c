@@ -15,13 +15,26 @@
 #define MAX_Y_CORD 31
 
 void run_snake() {
+    const u8 food_counter_iterations = 5;
     directions move_direction;
+    snake_piece* new_head_of_snake;
+    food_piece* current_food = NULL;
+    u8 food_counter = 0;
 
     snake_piece* head_of_snake = malloc_new_piece(STARTING_X_CORD, STARTING_Y_CORD);
+    srand(time(NULL));
 
     for(;;) {
         // Check if we should spawn a pixel to eat
         // If so, spawn it
+        food_counter++;
+        if(food_counter == food_counter_iterations) {
+            food_counter = 0;
+
+            if(current_food == NULL) {
+                current_food = generate_food_piece(head_of_snake);
+            }
+        }
 
         // Read controller
         // u8 read_controller(controller*);
@@ -29,21 +42,29 @@ void run_snake() {
         if(move_direction == quit) break;
 
         // Move snake
-        head_of_snake = move_snake(head_of_snake, move_direction);
+        new_head_of_snake = move_snake(head_of_snake, move_direction);
 
-        if(head_of_snake != NULL) {
-            print_cords_of_snake(head_of_snake);
+        // TESTING stuff - will be removed
+        if(new_head_of_snake != NULL) {
+            print_cords_of_snake(new_head_of_snake);
         }
         else {
             PRINT("FAILED TO MOVE SNAKE\n");
-            exit(2);
+            break;
         }
 
-        // Check if we collided with a pixel, ourselves, or edge of screen
+        if(current_food != NULL) {
+            PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
+        }
+
+        head_of_snake = new_head_of_snake;
+
+        // Check if we collided with food, ourselves, or edge of screen
 
     }
 
     free_snake(head_of_snake);
+    remove_food_piece(current_food);
 }
 
 //*****************************************************************************
@@ -86,6 +107,74 @@ void calc_moved_x_and_y(snake_piece* head, directions direction_to_move,
             PRINT("ERROR: Can't be in quit state here\n");
             break;
     }
+}
+
+food_piece* generate_food_piece(snake_piece* head) {
+    const u8 x_cord_constraint = MAX_X_CORD + 1;
+    const u8 y_cord_constraint = MAX_Y_CORD + 1;
+    u8 generated_x_cord, generated_y_cord;
+    bool food_in_snake_body;
+    food_piece* generated_food;
+
+    for(;;) {
+        generated_x_cord = generate_random_number(x_cord_constraint);
+        generated_y_cord = generate_random_number(y_cord_constraint);
+        food_in_snake_body = check_if_food_in_snake_body(head,
+                                                         generated_x_cord,
+                                                         generated_y_cord);
+
+        // Only generate the food if the x and y cords were not in the
+        // body of the snake
+        if(!food_in_snake_body) {
+            generated_food = create_food_piece(generated_x_cord,
+                                               generated_y_cord);
+            break;
+        }
+    }
+
+    return generated_food;
+}
+
+bool check_if_food_in_snake_body(snake_piece* head, u8 food_x_cord, u8 food_y_cord) {
+    bool food_in_snake_body = false;
+    snake_piece* current_piece = head;
+
+    while(current_piece != NULL) {
+        if( (food_x_cord == current_piece->x_cord) &&
+            (food_y_cord == current_piece->y_cord) ) {
+            food_in_snake_body = true;
+            break;
+        }
+        current_piece = current_piece->next;
+    }
+
+    return food_in_snake_body;
+}
+
+//****************************************
+// Generates a random number between 0 and
+// constraint - 1
+//****************************************
+u8 generate_random_number(const u8 constraint) {
+    u8 random_number = (u8)(rand() % constraint);
+    return random_number;
+}
+
+food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
+    food_piece* food = (food_piece*)malloc(sizeof(food_piece));  
+    if(food == NULL) {
+        PRINT("ERROR mallocing food piece\n");
+        exit(1);
+    }
+
+    food->x_cord = x_cord;
+    food->y_cord = y_cord;
+
+    return food;
+}
+
+void remove_food_piece(food_piece* food_to_remove) {
+    if(food_to_remove != NULL) free(food_to_remove);
 }
 
 snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
@@ -154,7 +243,7 @@ bool remove_piece(snake_piece* node) {
 directions get_snake_direction() {
     directions return_direction;
     char direction_char;
-    PRINT("Enter in a direction (w,a,s,d,q for quit):");
+    PRINT("\nEnter in a direction (w,a,s,d,q for quit):");
     scanf(" %c", &direction_char);
 
     switch(direction_char) {
