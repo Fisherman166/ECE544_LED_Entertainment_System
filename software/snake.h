@@ -31,7 +31,7 @@ struct snake_piece {
     snake_piece* next;
     snake_piece* prev;
 };
-typedef enum {up, down, left, right} directions;
+typedef enum {up, down, left, right, quit} directions;
 
 //*****************
 // Functions
@@ -42,7 +42,7 @@ snake_piece* move_snake(snake_piece*, directions);
 void calc_moved_x_and_y(snake_piece*, directions, u8*, u8*);
 
 snake_piece* insert_head_of_snake(snake_piece*, u8, u8);
-snake_piece* remove_tail_of_snake(snake_piece*);
+bool remove_tail_of_snake(snake_piece*);
 void free_snake(snake_piece*);
 
 snake_piece* malloc_new_piece(u8, u8);
