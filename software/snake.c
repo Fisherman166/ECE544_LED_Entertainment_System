@@ -18,6 +18,7 @@ void run_snake() {
     const u8 food_counter_iterations = 5;
     directions move_direction;
     snake_piece* new_head_of_snake;
+    u8 next_x_cord, next_y_cord;
     food_piece* current_food = NULL;
     u8 food_counter = 0;
 
@@ -42,7 +43,8 @@ void run_snake() {
         if(move_direction == quit) break;
 
         // Move snake
-        new_head_of_snake = move_snake(head_of_snake, move_direction);
+        calc_moved_x_and_y(head_of_snake, move_direction, &next_x_cord, &next_y_cord);
+        new_head_of_snake = move_snake(head_of_snake, current_food, next_x_cord, next_y_cord);
 
         // TESTING stuff - will be removed
         if(new_head_of_snake != NULL) {
@@ -59,8 +61,6 @@ void run_snake() {
 
         head_of_snake = new_head_of_snake;
 
-        // Check if we collided with food, ourselves, or edge of screen
-
     }
 
     free_snake(head_of_snake);
@@ -70,17 +70,39 @@ void run_snake() {
 //*****************************************************************************
 // Supporting functions
 //*****************************************************************************
-snake_piece* move_snake(snake_piece* head_of_snake, directions move_direction) {
-    u8 next_x_cord, next_y_cord;
+snake_piece* move_snake(snake_piece* head, food_piece* food, u8 x_cord, u8 y_cord) {
+    snake_piece* new_head;
 
-    calc_moved_x_and_y(head_of_snake, move_direction, &next_x_cord, &next_y_cord);
-    if( (next_x_cord > MAX_X_CORD) || (next_y_cord > MAX_Y_CORD) ) return NULL;
+    if(x_cord > MAX_X_CORD) new_head = NULL;
+    else if(y_cord > MAX_Y_CORD) new_head = NULL;
+    else if(food == NULL) {
+        new_head = normal_move_snake(head, x_cord, y_cord);
+    }
+    else {
+        if( (food->x_cord == x_cord) && (food->y_cord == y_cord) ) {
+            new_head = got_food_move_snake(head, food, x_cord, y_cord);
+            remove_food_piece(food);
+        }
+        else new_head = normal_move_snake(head, x_cord, y_cord);
+    }
 
+    return new_head;
+}
+
+snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
-                                                          next_x_cord,
-                                                          next_y_cord);
+                                                          x_cord,
+                                                          y_cord);
     remove_tail_of_snake(new_head_of_snake);
 
+    return new_head_of_snake;
+}
+
+snake_piece* got_food_move_snake(snake_piece* head_of_snake, food_piece* food, u8 x_cord, u8 y_cord) {
+
+    snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
+                                                          x_cord,
+                                                          y_cord);
     return new_head_of_snake;
 }
 
@@ -174,7 +196,8 @@ food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
 }
 
 void remove_food_piece(food_piece* food_to_remove) {
-    if(food_to_remove != NULL) free(food_to_remove);
+    if(food_to_remove == NULL) return;
+    free(food_to_remove);
 }
 
 snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {

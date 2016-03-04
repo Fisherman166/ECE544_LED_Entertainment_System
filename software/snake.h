@@ -45,7 +45,9 @@ typedef enum {up, down, left, right, quit} directions;
 //*****************
 void run_snake();
 
-snake_piece* move_snake(snake_piece*, directions);
+snake_piece* move_snake(snake_piece*, food_piece*, u8, u8);
+snake_piece* normal_move_snake(snake_piece*, u8, u8);
+snake_piece* got_food_move_snake(snake_piece*, food_piece*, u8, u8);
 void calc_moved_x_and_y(snake_piece*, directions, u8*, u8*);
 
 food_piece* generate_food_piece(snake_piece*);
