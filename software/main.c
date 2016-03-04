@@ -10,6 +10,8 @@
 #include "snake.h"
 
 int main() {
+
+    run_snake();
     
     return 0;
 }
