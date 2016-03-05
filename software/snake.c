@@ -21,18 +21,18 @@ void run_snake() {
     u8 next_x_cord, next_y_cord;
     food_piece* current_food = NULL;
     u8 food_counter = 0;
+    bool moving_head_into_body = false;
 
-    snake_piece* head_of_snake = malloc_new_piece(STARTING_X_CORD, STARTING_Y_CORD);
+    snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
     srand(time(NULL));
 
     for(;;) {
         // Check if we should spawn a pixel to eat
         // If so, spawn it
-        food_counter++;
-        if(food_counter == food_counter_iterations) {
-            food_counter = 0;
-
-            if(current_food == NULL) {
+        if(current_food == NULL) {
+            food_counter++;
+            if(food_counter == food_counter_iterations) {
+                food_counter = 0;
                 current_food = generate_food_piece(head_of_snake);
             }
         }
@@ -44,6 +44,8 @@ void run_snake() {
 
         // Move snake
         calc_moved_x_and_y(head_of_snake, move_direction, &next_x_cord, &next_y_cord);
+        moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
+        if(moving_head_into_body) break;
         new_head_of_snake = move_snake(head_of_snake, &current_food, next_x_cord, next_y_cord);
 
         // TESTING stuff - will be removed
@@ -141,7 +143,7 @@ food_piece* generate_food_piece(snake_piece* head) {
     for(;;) {
         generated_x_cord = generate_random_number(x_cord_constraint);
         generated_y_cord = generate_random_number(y_cord_constraint);
-        food_in_snake_body = check_if_food_in_snake_body(head,
+        food_in_snake_body = check_snake_collision(head,
                                                          generated_x_cord,
                                                          generated_y_cord);
 
@@ -157,20 +159,20 @@ food_piece* generate_food_piece(snake_piece* head) {
     return generated_food;
 }
 
-bool check_if_food_in_snake_body(snake_piece* head, u8 food_x_cord, u8 food_y_cord) {
-    bool food_in_snake_body = false;
-    snake_piece* current_piece = head;
+bool check_snake_collision(snake_piece* head_of_snake, u8 x_cord_to_check, u8 y_cord_to_check) {
+    bool object_in_snake = false;
+    snake_piece* current_piece = head_of_snake;
 
     while(current_piece != NULL) {
-        if( (food_x_cord == current_piece->x_cord) &&
-            (food_y_cord == current_piece->y_cord) ) {
-            food_in_snake_body = true;
+        if( (x_cord_to_check == current_piece->x_cord) &&
+            (y_cord_to_check == current_piece->y_cord) ) {
+            object_in_snake = true;
             break;
         }
         current_piece = current_piece->next;
     }
 
-    return food_in_snake_body;
+    return object_in_snake;
 }
 
 //****************************************
@@ -202,7 +204,7 @@ void remove_food_piece(food_piece** food_to_remove) {
 }
 
 snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
-    snake_piece* new_head = malloc_new_piece(x_cord, y_cord);
+    snake_piece* new_head = create_snake_piece(x_cord, y_cord);
     if(new_head == NULL) {
         PRINT("Failed to create new head of snake\n");
         return NULL;
@@ -226,22 +228,25 @@ bool remove_tail_of_snake(snake_piece* head) {
 
     new_tail = previous_piece->prev; 
     new_tail->next = NULL;
-    remove_piece(previous_piece);
+    remove_snake_piece(previous_piece);
     return true;
 }
 
+//*********************************************************
+// Free's the entire snake for cleanup
+//*********************************************************
 void free_snake(snake_piece* head) {
     snake_piece* current_piece = head;
     snake_piece* next_piece;
 
     while(current_piece != NULL) {
         next_piece = current_piece->next;
-        remove_piece(current_piece);
+        remove_snake_piece(current_piece);
         current_piece = next_piece;
     }
 }
 
-snake_piece* malloc_new_piece(u8 x_cord, u8 y_cord) {
+snake_piece* create_snake_piece(u8 x_cord, u8 y_cord) {
     snake_piece* new_piece = (snake_piece*)malloc(sizeof(snake_piece));
     if(new_piece == NULL) {
         PRINT("FAILED TO MALLOC SNAKE PIECE\n");
@@ -256,7 +261,7 @@ snake_piece* malloc_new_piece(u8 x_cord, u8 y_cord) {
     return new_piece;
 }
 
-bool remove_piece(snake_piece* node) {
+bool remove_snake_piece(snake_piece* node) {
     if(node == NULL) return 0;
 
     free(node);

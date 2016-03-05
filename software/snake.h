@@ -49,6 +49,7 @@ snake_piece* move_snake(snake_piece*, food_piece**, u8, u8);
 snake_piece* normal_move_snake(snake_piece*, u8, u8);
 snake_piece* got_food_move_snake(snake_piece*, u8, u8);
 void calc_moved_x_and_y(snake_piece*, directions, u8*, u8*);
+bool check_snake_collision(snake_piece*, u8, u8);
 
 food_piece* generate_food_piece(snake_piece*);
 bool check_if_food_in_snake_body(snake_piece*, u8, u8);
@@ -60,13 +61,12 @@ snake_piece* insert_head_of_snake(snake_piece*, u8, u8);
 bool remove_tail_of_snake(snake_piece*);
 void free_snake(snake_piece*);
 
-snake_piece* malloc_new_piece(u8, u8);
-bool remove_piece(snake_piece*);
+snake_piece* create_snake_piece(u8, u8);
+bool remove_snake_piece(snake_piece*);
 
 // Testing functions only - will be removed
 directions get_snake_direction();
 void print_cords_of_snake(snake_piece*);
-
 
 #endif
 
