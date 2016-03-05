@@ -6,6 +6,10 @@
 //
 //*****************************************************************************
 
+#ifdef VIVADO
+#include "vivado_includes.h"
+#endif // VIVADO
+
 #include "main.h"
 #include "snake.h"
 
@@ -15,4 +19,5 @@ int main() {
     
     return 0;
 }
+
 
