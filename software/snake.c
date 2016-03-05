@@ -44,7 +44,7 @@ void run_snake() {
 
         // Move snake
         calc_moved_x_and_y(head_of_snake, move_direction, &next_x_cord, &next_y_cord);
-        new_head_of_snake = move_snake(head_of_snake, current_food, next_x_cord, next_y_cord);
+        new_head_of_snake = move_snake(head_of_snake, &current_food, next_x_cord, next_y_cord);
 
         // TESTING stuff - will be removed
         if(new_head_of_snake != NULL) {
@@ -64,23 +64,23 @@ void run_snake() {
     }
 
     free_snake(head_of_snake);
-    remove_food_piece(current_food);
+    remove_food_piece(&current_food);
 }
 
 //*****************************************************************************
 // Supporting functions
 //*****************************************************************************
-snake_piece* move_snake(snake_piece* head, food_piece* food, u8 x_cord, u8 y_cord) {
+snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_cord) {
     snake_piece* new_head;
 
     if(x_cord > MAX_X_CORD) new_head = NULL;
     else if(y_cord > MAX_Y_CORD) new_head = NULL;
-    else if(food == NULL) {
+    else if(*food == NULL) {
         new_head = normal_move_snake(head, x_cord, y_cord);
     }
     else {
-        if( (food->x_cord == x_cord) && (food->y_cord == y_cord) ) {
-            new_head = got_food_move_snake(head, food, x_cord, y_cord);
+        if( ((*food)->x_cord == x_cord) && ((*food)->y_cord == y_cord) ) {
+            new_head = got_food_move_snake(head, x_cord, y_cord);
             remove_food_piece(food);
         }
         else new_head = normal_move_snake(head, x_cord, y_cord);
@@ -98,7 +98,7 @@ snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord)
     return new_head_of_snake;
 }
 
-snake_piece* got_food_move_snake(snake_piece* head_of_snake, food_piece* food, u8 x_cord, u8 y_cord) {
+snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
 
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
                                                           x_cord,
@@ -195,9 +195,10 @@ food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
     return food;
 }
 
-void remove_food_piece(food_piece* food_to_remove) {
-    if(food_to_remove == NULL) return;
-    free(food_to_remove);
+void remove_food_piece(food_piece** food_to_remove) {
+    if(*food_to_remove == NULL) return;
+    free(*food_to_remove);
+    *food_to_remove = NULL;
 }
 
 snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
