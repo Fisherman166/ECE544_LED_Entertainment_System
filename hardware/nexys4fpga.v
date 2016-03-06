@@ -14,108 +14,66 @@
 ///////////////////////////////////////////////////////////////////////////
 
 module Nexys4fpga (
-	input 			    clk,          // 100MHz clock from on-board oscillator
-	input				    btnCpuReset,  // red pushbutton input -> db_btns[0]
+  input clk,              // 100MHz clock from on-board oscillator
+  input btnCpuReset,      // red pushbutton input -> db_btns[0]
 
-	input	  [15:0]  sw,					  // switch inputs
-	output	[15:0]  led,  			  // LED outputs	
+  input nes_data1,        // Serial input line from first NES controller
+  input nes_data2,        // Serial input line from second NES controller
   
-  input           nes_data1,    // Serial input line from first NES controller
-  input           nes_data2,    // Serial input line from second NES controller
-    
-  output          nes_latch1,   // Latch output to first NES controller
-  output          nes_pulse1,   // Pulse output to first NES controller
-  
-  output          nes_latch2,   // Latch output to second NES controller
-  output          nes_pulse2,   // Pulse output to second NES controller
-  
-  //Signals to led panel
-  output  [2:0]   led_rgb1,
-  output  [2:0]   led_rgb2,
-  output  [2:0]   led_abc,
-  output          led_clk,
-  output          led_latch,
-  output          led_oe
+  input uart_rtl_rxd,     // UART RX
+  output uart_rtl_txd,    // UART TX
+
+  output  nes_latch1,     // Latch output to first NES controller
+  output  nes_pulse1,     // Pulse output to first NES controller
+
+  output  nes_latch2,     // Latch output to second NES controller
+  output  nes_pulse2,     // Pulse output to second NES controller
+
+  output  [2:0] led_rgb1, // RGB output for top half of LED Panel
+  output  [2:0] led_rgb2, // RGB output for bottom half of LED Panel
+  output  [2:0] led_abc,  // LED Panel Row address bits
+  output        led_clk,  // LED Panel Clock
+  output        led_latch,// LED Panel Latch
+  output        led_oe    // LED Panel output enable
   
 ); 
-
-	// Outputs of Debounce block
-	wire 	[15:0]		db_sw;			// debounced switches
-  wire  [5:0]     db_btns;    // debounced buttons only used for Reset
-	
   // Clock and reset
-	wire  sysclk = clk;					  // 100MHz clock from on-board oscillator	
-	wire  sysreset = db_btns[0];	// system reset signal - asserted high to force reset
+  wire  sysclk = clk;					  // 100MHz clock from on-board oscillator	
+  wire  sysreset = db_btns[0];	// system reset signal - asserted high to force reset
   wire  reset_high = ~sysreset; // Invert reset signal
-  
-  // Output of NES controller modules
-  wire  [7:0]  nes_btns1, nes_btns2;
-  
-  wire  [7:0] controller1 = ~nes_btns1;
-  wire  [7:0] controller2 = ~nes_btns2;
-  
-  // Assign NES controllers to LEDs for debugging
-  assign led = {controller1, controller2};
-
-	//instantiate the debounce module
-	debounce
-	#(
-		.RESET_POLARITY_LOW(1),
-		.SIMULATE(0)
-	)  	DB
-	(
-		.clk(sysclk),	
-		.pbtn_in({1'b0,1'b0,1'b0,1'b0,1'b0,btnCpuReset}),
-		.pbtn_db(db_btns),
-		.switch_in(sw),
-		.swtch_db(db_sw)
-		
-
-	);	
 
 
-  //instantiate first nes controller module
-  nescontrol
+  //instantiate the debounce module
+  debounce
   #(
-    .UPDATE_100_HZ(100)
-  ) NES1 
+    .RESET_POLARITY_LOW(1),
+    .SIMULATE(0)
+  )  	DB
   (
-    .clk(sysclk),
-    .reset(reset_high),
-    .nes_data(nes_data1),
-    .nes_latch(nes_latch1),
-    .nes_pulse(nes_pulse1),
-    .nes_btns(nes_btns1)
-  );
-    
-  //instantiate second nes controller module
-  nescontrol
-  #(
-    .UPDATE_100_HZ(100)
-  ) NES2 
-  (
-    .clk(sysclk),
-    .reset(reset_high),
-    .nes_data(nes_data2),
-    .nes_latch(nes_latch2),
-    .nes_pulse(nes_pulse2),
-    .nes_btns(nes_btns2)
-  );
+    .clk(sysclk),	
+    .pbtn_in({1'b0,1'b0,1'b0,1'b0,1'b0,btnCpuReset}),
+    .pbtn_db(db_btns),
+  );	
   
-  //instantiate LED Panel module
-  ledpanel
-  #(
-  
-  ) LED
-  (
-    .clk(sysclk),
-    .reset(reset_high),
-    .led_rgb1(led_rgb1),
-    .led_rgb2(led_rgb2),
-    .led_abc(led_abc),
-    .led_clk(led_clk),
-    .led_latch(led_latch),
-    .led_oe(led_oe)
-  );
+  //instantiate the embedded system module
+  design_1 DESIGN_1
+       (.led_abc(led_abc),
+        .led_clk(led_clk),
+        .led_latch(led_latch),
+        .led_oe(led_oe),
+        .led_rgb1(led_rgb1),
+        .led_rgb2(led_rgb2),
+        .nes_data1(nes_data1),
+        .nes_data2(nes_data2),
+        .nes_latch1(nes_latch1),
+        .nes_latch2(nes_latch2),
+        .nes_pulse1(nes_pulse1),
+        .nes_pulse2(nes_pulse2),
+        .reset_high(reset_high),
+        .sysclk(sysclk),
+        .sysreset(sysreset),
+        .uart_rtl_rxd(uart_rtl_rxd),
+        .uart_rtl_txd(uart_rtl_txd));
+
     
 endmodule
