@@ -310,7 +310,7 @@ module ledpanel
       CLOCK:  //This state clocks in current RGB values and enables output
       begin
         led_rgb1  <= led_rgb1;
-        led_rgb2  <= led_rgb1;
+        led_rgb2  <= led_rgb2;
         led_clk   <= 1'b1;
         led_oe    <= 1'b0;
         x_count   <= x_count;
