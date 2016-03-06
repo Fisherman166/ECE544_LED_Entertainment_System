@@ -75,5 +75,7 @@
  *
  */
 XStatus NESIP_Reg_SelfTest(void * baseaddr_p);
+int NES_initialize(u8, u32);
+u8 NES_read(u8);
 
 #endif // NESIP_H
