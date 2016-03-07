@@ -378,7 +378,7 @@
 	begin
 	      // Address decoding for reading registers
 	      case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	        2'h0   : reg_data_out <= slv_reg0;
+	        2'h0   : reg_data_out <= ~nes_btns;
 	        2'h1   : reg_data_out <= slv_reg1;
 	        2'h2   : reg_data_out <= slv_reg2;
 	        2'h3   : reg_data_out <= slv_reg3;
@@ -406,7 +406,8 @@
 	end    
 
 	// Add user logic here
-nescontrol
+	wire [7:0] nes_btns;
+    nescontrol
     #(
       //Parameters
       .CLK_FREQUENCY_HZ(CLK_FREQUENCY_HZ), 
@@ -425,7 +426,7 @@ nescontrol
         //Outputs to NES
         .nes_latch(nes_latch),
         .nes_pulse(nes_pulse),
-        .nes_btns(slv_reg0)
+        .nes_btns(nes_btns)
       );
 	// User logic ends
 

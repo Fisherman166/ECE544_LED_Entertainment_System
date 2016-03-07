@@ -38,22 +38,9 @@ module Nexys4fpga (
   
 ); 
   // Clock and reset
-  wire  sysclk = clk;					  // 100MHz clock from on-board oscillator	
-  wire  sysreset = db_btns[0];	// system reset signal - asserted high to force reset
-  wire  reset_high = ~sysreset; // Invert reset signal
-
-
-  //instantiate the debounce module
-  debounce
-  #(
-    .RESET_POLARITY_LOW(1),
-    .SIMULATE(0)
-  )  	DB
-  (
-    .clk(sysclk),	
-    .pbtn_in({1'b0,1'b0,1'b0,1'b0,1'b0,btnCpuReset}),
-    .pbtn_db(db_btns),
-  );	
+  wire  sysclk = clk;			// 100MHz clock from on-board oscillator	
+  wire  sysreset = btnCpuReset;	// system reset signal - asserted high to force reset
+  wire  reset_high = ~sysreset; // Invert reset signal	
   
   //instantiate the embedded system module
   design_1 DESIGN_1

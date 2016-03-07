@@ -90,11 +90,7 @@
         .led_abc(led_abc),
         .led_clk(led_clk),
         .led_latch(led_latch),
-        led_oe(led_oe)
-
-		
-		
-		
+        .led_oe(led_oe)	
 	);
 
 	// Add user logic here

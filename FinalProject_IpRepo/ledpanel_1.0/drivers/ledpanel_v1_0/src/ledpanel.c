@@ -46,7 +46,7 @@ XST_SUCCESS LEDPANEL_writepixel(u8 x, u8 y, u8 color)
 {
     LEDPANEL_mWriteReg(LEDPANEL_BaseAddress, LEDPANEL_ledpanel_color_OFFSET, (u32) color);
     LEDPANEL_mWriteReg(LEDPANEL_BaseAddress, LEDPANEL_ledpanel_x_address_OFFSET, (u32) x);
-    LEDPANEL_mWriteReg(LEDPANEL_BaseAddress, LEDPANEL_ledpanel_x_address_OFFSET, (u32) y);
+    LEDPANEL_mWriteReg(LEDPANEL_BaseAddress, LEDPANEL_ledpanel_y_address_OFFSET, (u32) y);
 
     LEDPANEL_mWriteReg(LEDPANEL_BaseAddress, LEDPANEL_ledpanel_new_data_OFFSET, 0x00000001);
     sleep(1);    
