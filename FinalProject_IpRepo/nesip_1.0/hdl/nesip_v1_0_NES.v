@@ -3,14 +3,7 @@
 
 	module nesip_v1_0_NES #
 	(
-		// Users to add parameters here
-
-          //Parameters
-          parameter integer    CLK_FREQUENCY_HZ        = 100000000, 
-          parameter integer    SHIFTER_CLK               = 200000,
-          parameter integer    UPDATE_100_HZ           = 100,
-          parameter integer     CNTR_WIDTH                   = 32,
-        
+		// Users to add parameters here        
 
 		// User parameters ends
 		// Do not modify the parameters beyond this line
@@ -23,14 +16,7 @@
 	(
 		// Users to add ports here
        
-          //Ports
-          //Inputs from board
-          input clk,
-          input reset,     
-          //Input from NES
-          input nes_data,
-          output nes_latch,
-          output nes_pulse,
+        input wire [7:0] nes_buttons,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -108,6 +94,7 @@
 	reg [C_S_AXI_DATA_WIDTH-1 : 0] 	axi_rdata;
 	reg [1 : 0] 	axi_rresp;
 	reg  	axi_rvalid;
+	wire [7:0] nes_btns;
 
 	// Example-specific design signals
 	// local parameter for addressing 32 bit / 64 bit C_S_AXI_DATA_WIDTH
@@ -378,7 +365,7 @@
 	begin
 	      // Address decoding for reading registers
 	      case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	        2'h0   : reg_data_out <= ~nes_btns;
+	        2'h0   : reg_data_out <= {24'h0,nes_buttons};
 	        2'h1   : reg_data_out <= slv_reg1;
 	        2'h2   : reg_data_out <= slv_reg2;
 	        2'h3   : reg_data_out <= slv_reg3;
@@ -406,28 +393,7 @@
 	end    
 
 	// Add user logic here
-	wire [7:0] nes_btns;
-    nescontrol
-    #(
-      //Parameters
-      .CLK_FREQUENCY_HZ(CLK_FREQUENCY_HZ), 
-      .SHIFTER_CLK(SHIFTER_CLK),
-      .UPDATE_100_HZ(UPDATE_100_HZ),
-      .CNTR_WIDTH(CNTR_WIDTH)
-    )   
-    n1    
-      (
-        //Ports
-        //Inputs from board
-        .clk(clk),
-        .reset(reset),
-        //Input from NES
-        .nes_data(nes_data),
-        //Outputs to NES
-        .nes_latch(nes_latch),
-        .nes_pulse(nes_pulse),
-        .nes_btns(nes_btns)
-      );
+    
 	// User logic ends
 
 	endmodule

@@ -9,6 +9,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "vivado_includes.h"
+
 int main();
 
 #endif

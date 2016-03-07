@@ -5,10 +5,6 @@
 	(
 		// Users to add parameters here
           //Parameters
-          parameter integer    CLK_FREQUENCY_HZ        = 100000000, 
-          parameter integer    SHIFTER_CLK               = 200000,
-          parameter integer    UPDATE_100_HZ           = 100,
-          parameter integer     CNTR_WIDTH                   = 32,
         
 		// User parameters ends
 		// Do not modify the parameters beyond this line
@@ -20,17 +16,17 @@
 	)
 	(
 		// Users to add ports here
-          //Inputs from board
-          input clk,
-          input reset,     
-          //Input from NES
-          input nes_data,
-          output  nes_latch,
-          output  nes_pulse,
+        //Inputs from board
+        input wire clk,
+        input wire reset,     
+        //Input from NES
+        input wire nes_data,
+        output wire nes_latch,
+        output wire nes_pulse,
+        output wire [7:0] nes_buttons,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
-
 
 		// Ports of Axi Slave Bus Interface NES
 		input wire  nes_aclk,
@@ -56,16 +52,11 @@
 		input wire  nes_rready
 	);
 // Instantiation of Axi Bus Interface NES
-	nesip_v1_0_NES # ( 
-	   //controller params
-        .CLK_FREQUENCY_HZ(CLK_FREQUENCY_HZ), 
-        .SHIFTER_CLK(SHIFTER_CLK),
-        .UPDATE_100_HZ(UPDATE_100_HZ),
-        .CNTR_WIDTH(CNTR_WIDTH),
-		
+	nesip_v1_0_NES # (		
 		.C_S_AXI_DATA_WIDTH(C_NES_DATA_WIDTH),
 		.C_S_AXI_ADDR_WIDTH(C_NES_ADDR_WIDTH)
 	) nesip_v1_0_NES_inst (
+	    .nes_buttons(nes_buttons),
 		.S_AXI_ACLK(nes_aclk),
 		.S_AXI_ARESETN(nes_aresetn),
 		.S_AXI_AWADDR(nes_awaddr),
@@ -87,19 +78,21 @@
 		.S_AXI_RRESP(nes_rresp),
 		.S_AXI_RVALID(nes_rvalid),
 		.S_AXI_RREADY(nes_rready),
-		
-          //Inputs from board
-          .clk(clk),
-          .reset(reset),
-          //Input from NES
-          .nes_data(new_data),
-          .nes_latch(nes_latch),
-          .nes_pulse(nes_pulse)
-		
 	);
 
 	// Add user logic here
-
+    nescontrol n1 (
+        //Ports
+        //Inputs from board
+        .clk(clk),
+        .reset(reset),
+        //Input from NES
+        .nes_data(nes_data),
+        //Outputs to NES
+        .nes_latch(nes_latch),
+        .nes_pulse(nes_pulse),
+        .nes_btns(nes_buttons)
+    );
 	// User logic ends
 
 	endmodule

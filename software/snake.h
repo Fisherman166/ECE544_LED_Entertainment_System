@@ -35,7 +35,7 @@ typedef enum {up, down, left, right, none} buttons;
 //*****************
 // Functions
 //*****************
-void run_snake(XGpio*, u32*);
+void run_snake(u32*);
 
 snake_piece* move_snake(snake_piece*, food_piece**, u8, u8);
 snake_piece* normal_move_snake(snake_piece*, u8, u8);
@@ -55,8 +55,10 @@ void free_snake(snake_piece*);
 snake_piece* create_snake_piece(u8, u8);
 bool remove_snake_piece(snake_piece*);
 
-buttons read_controller(XGpio*, u8);
-buttons direction_to_move(XGpio*);
+buttons read_controller(u8);
+buttons direction_to_move();
+
+void update_screen(snake_piece*, food_piece*);
 
 #endif
 

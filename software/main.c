@@ -11,14 +11,16 @@
 
 // IP instances
 XIntc interrupt_controller;
-XGpio controller1_gpio;
 
 // Generic variables
 volatile u32 timestamp_msecs = 0;
 
 int main() {
+    XStatus status;
 
-    run_snake();
+    status = init_devices();
+    if(status != XST_SUCCESS) PRINT("FAILED TO INIT DEVICES\n");
+    else run_snake(&timestamp_msecs);
     
     return 0;
 }
@@ -28,10 +30,13 @@ static XStatus init_devices() {
 
     init_platform();
 
-    u32 controller1_input_mask = 0xFF;  // Bottom 8 bit as input
-    status = XGpio_Initialize(&controller1_gpio, CONTROLLER1_DEVICE_ID);
+    // Initialize the NES controller
+    status = NES_initialize(CONTROLLER1_DEV_ID, CONTROLLER1_BASE_ADDRESS);
     if(status != XST_SUCCESS) return XST_FAILURE;
-    XGpio_SetDataDirection(&controller1_gpio, CONTROLLER1_INPUT_CHANNEL, controller1_input_mask);
+
+    //Initialize the LED panel
+    status = LEDPANEL_initialize(LEDPANEL_BASE_ADDRESS);
+    if(status != XST_SUCCESS) return XST_FAILURE;
 
     status = XIntc_Initialize(&interrupt_controller, INTC_DEVICE_ID);
     if(status != XST_SUCCESS) return XST_FAILURE;

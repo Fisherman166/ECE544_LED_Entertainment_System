@@ -12,11 +12,12 @@
 #include "xparameters.h"
 #include "xintc.h"
 #include "xtmrctr.h"
-#include "xgpio.h"
+#include "uart.h"
+#include "nesip.h"
 
-// GPIO parameters
-#define CONTROLLER1_DEVICE_ID XPAR_AXI_GPIO_0_DEVICE_ID
-#define CONTROLLER1_INPUT_CHANNEL 1
+// NES controller1 defines
+#define CONTROLLER1_DEV_ID 0
+#define CONTROLLER1_BASE_ADDRESS 0
 
 // Interrupt controller parameters
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID

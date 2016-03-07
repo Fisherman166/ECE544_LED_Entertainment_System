@@ -13,7 +13,8 @@
 #define MAX_X_CORD 31
 #define MAX_Y_CORD 15
 
-void run_snake(XGpio* controller1_gpio, u32* timestamp_msecs) {
+void run_snake(u32* timestamp_msecs) {
+    const u8 msecs_per_screen_update = 200;
     const u8 food_counter_iterations = 5;
     buttons movement_direction;
     snake_piece* new_head_of_snake;
@@ -21,45 +22,56 @@ void run_snake(XGpio* controller1_gpio, u32* timestamp_msecs) {
     food_piece* current_food = NULL;
     u8 food_counter = 0;
     bool moving_head_into_body = false;
+    u32 screen_updated_at_msecs = 0;
 
     snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
     srand(time(NULL));
 
     for(;;) {
-        // Check if we should spawn a pixel to eat
-        // If so, spawn it
-        if(current_food == NULL) {
-            food_counter++;
-            if(food_counter == food_counter_iterations) {
-                food_counter = 0;
-                current_food = generate_food_piece(head_of_snake);
+        if( (*timestamp_msecs - screen_updated_at_msecs) > msecs_per_screen_update) {
+            screen_updated_at_msecs = *timestamp_msecs;
+
+            // Check if we should spawn a pixel to eat
+            // If so, spawn it
+            if(current_food == NULL) {
+                food_counter++;
+                if(food_counter == food_counter_iterations) {
+                    food_counter = 0;
+                    current_food = generate_food_piece(head_of_snake);
+                }
             }
+
+            // Read controller
+            movement_direction = direction_to_move();
+
+            // Move snake
+            calc_moved_x_and_y(head_of_snake, movement_direction, &next_x_cord, &next_y_cord);
+            moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
+            if(moving_head_into_body) break;
+            new_head_of_snake = move_snake(head_of_snake, &current_food, next_x_cord, next_y_cord);
+
+            // Update the screen
+            if(new_head_of_snake != NULL) {
+                head_of_snake = new_head_of_snake;
+                update_screen(head_of_snake, current_food);
+            }
+            else {
+                PRINT("Head of snake is NULL. FAILED");
+                break;
+            }
+            // TESTING stuff - will be removed
+            /*if(new_head_of_snake != NULL) {
+                print_cords_of_snake(new_head_of_snake);
+            }
+            else {
+                PRINT("FAILED TO MOVE SNAKE\n");
+                break;
+            }
+
+            if(current_food != NULL) {
+                PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
+            }*/
         }
-
-        // Read controller
-        movement_direction = direction_to_move(controller1_gpio);
-
-        // Move snake
-        calc_moved_x_and_y(head_of_snake, movement_direction, &next_x_cord, &next_y_cord);
-        moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
-        if(moving_head_into_body) break;
-        new_head_of_snake = move_snake(head_of_snake, &current_food, next_x_cord, next_y_cord);
-
-        // TESTING stuff - will be removed
-        if(new_head_of_snake != NULL) {
-            print_cords_of_snake(new_head_of_snake);
-        }
-        else {
-            PRINT("FAILED TO MOVE SNAKE\n");
-            break;
-        }
-
-        if(current_food != NULL) {
-            PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
-        }
-
-        head_of_snake = new_head_of_snake;
-
     }
 
     free_snake(head_of_snake);
@@ -266,13 +278,13 @@ bool remove_snake_piece(snake_piece* node) {
 }
 
 buttons read_controller(XGpio* controller, u8 channel) {
-    const u32 right_button_mask = 0x1;
-    const u32 left_button_mask = 0x2;
-    const u32 down_button_mask = 0x4;
-    const u32 up_button_mask = 0x8;
+    const u8 right_button_mask = 0x1;
+    const u8 left_button_mask = 0x2;
+    const u8 down_button_mask = 0x4;
+    const u8 up_button_mask = 0x8;
     buttons return_button;
 
-    u32 controller_status = XGPIO_DiscreteRead(controller, channel);
+    u8 controller_status = NES_read(CONTROLLER1_DEV_ID);
 
     if(controller_status & right_button_mask) return_button = right;
     else if(controller_status & left_button_mask) return_button = left;
@@ -283,7 +295,7 @@ buttons read_controller(XGpio* controller, u8 channel) {
     return return_button;
 }
 
-buttons direction_to_move(XGpio* controller) {
+buttons direction_to_move() {
     static buttons direction_currently_moving = right;
     buttons button_pressed = read_controller(controller, CONTROLLER1_INPUT_CHANNEL);
     buttons final_direction_to_move;
@@ -317,6 +329,24 @@ buttons direction_to_move(XGpio* controller) {
     return final_direction_to_move;
 }
 
+void update_screen(snake_piece* head_of_snake, food_piece* food) {
+    snake_piece* current_chunk = head_of_snake;
+
+    //First put all of the snake pixels on the screen
+    while(current_chunk != NULL) {
+        LEDPANEL_writepixel(current_chunk->x_cord,
+                            current_chunk->y_cord,
+                            0x2);
+        current_chunk = current_chunk->next;
+    }
+    if(food != NULL) {
+        LEDPANEL_writepixel(food->x_cord,
+                            food->y_cord,
+                            0x2);
+    }
+    LEDPANEL_updatepanel();
+}
+        
 // Test functions that will be removed
 void print_cords_of_snake(snake_piece* head) {
     snake_piece* current_piece = head;

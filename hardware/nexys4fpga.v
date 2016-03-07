@@ -34,13 +34,16 @@ module Nexys4fpga (
   output  [2:0] led_abc,  // LED Panel Row address bits
   output        led_clk,  // LED Panel Clock
   output        led_latch,// LED Panel Latch
-  output        led_oe    // LED Panel output enable
-  
+  output        led_oe,   // LED Panel output enable
+  output [15:0] led
 ); 
   // Clock and reset
   wire  sysclk = clk;			// 100MHz clock from on-board oscillator	
   wire  sysreset = btnCpuReset;	// system reset signal - asserted high to force reset
   wire  reset_high = ~sysreset; // Invert reset signal	
+  wire  [7:0] nes_buttons1;
+  wire  [7:0] nes_buttons2;
+  assign led = {nes_buttons2, nes_buttons1};
   
   //instantiate the embedded system module
   design_1 DESIGN_1
@@ -60,7 +63,9 @@ module Nexys4fpga (
         .sysclk(sysclk),
         .sysreset(sysreset),
         .uart_rtl_rxd(uart_rtl_rxd),
-        .uart_rtl_txd(uart_rtl_txd));
+        .uart_rtl_txd(uart_rtl_txd),
+        .nes_buttons1(nes_buttons1),
+        .nes_buttons2(nes_buttons2));
 
     
 endmodule
