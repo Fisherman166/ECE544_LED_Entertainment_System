@@ -20,7 +20,16 @@ int main() {
 
     status = init_devices();
     if(status != XST_SUCCESS) PRINT("FAILED TO INIT DEVICES\n");
-    else run_snake(&timestamp_msecs);
+    else {
+    	PRINT("INIT SUCCESS\n");
+    	for(;;) {
+    		u8 nes_val = NES_read(CONTROLLER1_DEV_ID);
+    		if(nes_val != 255) PRINT("NES VAL = %d\n", nes_val);
+    	}
+    	LEDPANEL_writepixel(0,5,2);
+    	LEDPANEL_updatepanel();
+    	//run_snake(&timestamp_msecs);
+    }
     
     return 0;
 }
@@ -35,7 +44,7 @@ static XStatus init_devices() {
     if(status != XST_SUCCESS) return XST_FAILURE;
 
     //Initialize the LED panel
-    status = LEDPANEL_initialize(LEDPANEL_BASE_ADDRESS);
+    status = LEDPANEL_initialize((void*)LEDPANEL_BASE_ADDRESS);
     if(status != XST_SUCCESS) return XST_FAILURE;
 
     status = XIntc_Initialize(&interrupt_controller, INTC_DEVICE_ID);

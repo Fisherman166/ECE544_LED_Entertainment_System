@@ -25,7 +25,9 @@ void run_snake(u32* timestamp_msecs) {
     u32 screen_updated_at_msecs = 0;
 
     snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
-    srand(time(NULL));
+    srand(1);
+
+    PRINT("IN SNAKE\n");
 
     for(;;) {
         if( (*timestamp_msecs - screen_updated_at_msecs) > msecs_per_screen_update) {
@@ -34,6 +36,7 @@ void run_snake(u32* timestamp_msecs) {
             // Check if we should spawn a pixel to eat
             // If so, spawn it
             if(current_food == NULL) {
+            	PRINT("MAKING FOOD\n");
                 food_counter++;
                 if(food_counter == food_counter_iterations) {
                     food_counter = 0;
@@ -45,6 +48,7 @@ void run_snake(u32* timestamp_msecs) {
             movement_direction = direction_to_move();
 
             // Move snake
+            PRINT("MOVING SNAKE\n");
             calc_moved_x_and_y(head_of_snake, movement_direction, &next_x_cord, &next_y_cord);
             moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
             if(moving_head_into_body) break;
@@ -52,6 +56,7 @@ void run_snake(u32* timestamp_msecs) {
 
             // Update the screen
             if(new_head_of_snake != NULL) {
+            	PRINT("UPDATE SCREEN\n");
                 head_of_snake = new_head_of_snake;
                 update_screen(head_of_snake, current_food);
             }
@@ -277,7 +282,7 @@ bool remove_snake_piece(snake_piece* node) {
     return 1;
 }
 
-buttons read_controller(XGpio* controller, u8 channel) {
+buttons read_controller() {
     const u8 right_button_mask = 0x1;
     const u8 left_button_mask = 0x2;
     const u8 down_button_mask = 0x4;
@@ -297,7 +302,7 @@ buttons read_controller(XGpio* controller, u8 channel) {
 
 buttons direction_to_move() {
     static buttons direction_currently_moving = right;
-    buttons button_pressed = read_controller(controller, CONTROLLER1_INPUT_CHANNEL);
+    buttons button_pressed = read_controller();
     buttons final_direction_to_move;
     bool button_conflicts = false;
 

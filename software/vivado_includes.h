@@ -11,13 +11,23 @@
 
 #include "xparameters.h"
 #include "xintc.h"
-#include "xtmrctr.h"
-#include "uart.h"
+#include "xuartlite.h"
 #include "nesip.h"
+#include "ledpanel.h"
+#include "xil_types.h"
+#include "platform.h"
+#include "mb_interface.h"
 
 // NES controller1 defines
-#define CONTROLLER1_DEV_ID 0
-#define CONTROLLER1_BASE_ADDRESS 0
+#define CONTROLLER1_DEV_ID XPAR_NESIP_0_DEVICE_ID
+#define CONTROLLER1_BASE_ADDRESS XPAR_NESIP_0_NES_BASEADDR
+
+// NES controller2 defines
+#define CONTROLLER2_DEV_ID XPAR_NESIP_1_DEVICE_ID
+#define CONTROLLER2_BASE_ADDRESS XPAR_NESIP_1_NES_BASEADDR
+
+// ledpanel defines
+#define LEDPANEL_BASE_ADDRESS XPAR_LEDPANEL_0_LEDPANEL_BASEADDR
 
 // Interrupt controller parameters
 #define INTC_DEVICE_ID          XPAR_INTC_0_DEVICE_ID

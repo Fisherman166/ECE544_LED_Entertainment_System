@@ -12,6 +12,8 @@
 #include "vivado_includes.h"
 
 int main();
+void FIT_handler();
+static XStatus init_devices();
 
 #endif
 

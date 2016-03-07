@@ -11,8 +11,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include "vivado_includes.h"
+#include "stdbool.h"
 
 #define PRINT xil_printf
 
@@ -55,7 +55,7 @@ void free_snake(snake_piece*);
 snake_piece* create_snake_piece(u8, u8);
 bool remove_snake_piece(snake_piece*);
 
-buttons read_controller(u8);
+buttons read_controller();
 buttons direction_to_move();
 
 void update_screen(snake_piece*, food_piece*);
