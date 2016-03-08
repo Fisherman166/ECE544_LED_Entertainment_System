@@ -15,18 +15,16 @@
 	)
 	(
 		// Users to add ports here
-
-        //Inputs from board
-        input clk,
-        input reset, 
-        //Outputs to panel
-        output   [2:0]   led_rgb1,
-        output   [2:0]   led_rgb2,
-        output   [2:0]   led_abc,
-        output           led_clk,
-        output           led_latch,
-        output           led_oe,
-
+    //Inputs from board
+    input clk,
+    input reset, 
+    //Outputs to panel
+    output   [2:0]   led_rgb1,
+    output   [2:0]   led_rgb2,
+    output   [2:0]   led_abc,
+    output           led_clk,
+    output           led_latch,
+    output           led_oe,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -54,6 +52,7 @@
 		output wire  ledpanel_rvalid,
 		input wire  ledpanel_rready
 	);
+  
 // Instantiation of Axi Bus Interface ledpanel
 	ledpanel_v1_0_ledpanel # ( 
 		.C_S_AXI_DATA_WIDTH(C_ledpanel_DATA_WIDTH),
@@ -81,16 +80,15 @@
 		.S_AXI_RVALID(ledpanel_rvalid),
 		.S_AXI_RREADY(ledpanel_rready),
 		
-		//Inputs from board
-        .clk(clk),
-        .reset(reset), 
-        //Outputs to panel
-        .led_rgb1(led_rgb1),
-        .led_rgb2(led_rgb2),
-        .led_abc(led_abc),
-        .led_clk(led_clk),
-        .led_latch(led_latch),
-        .led_oe(led_oe)	
+    .clk(clk),
+    .reset(reset),
+    .led_rgb1(led_rgb1),
+    .led_rgb2(led_rgb2),
+    .led_abc(led_abc),
+    .led_clk(led_clk),
+    .led_latch(led_latch),
+    .led_oe(led_latch)
+
 	);
 
 	// Add user logic here

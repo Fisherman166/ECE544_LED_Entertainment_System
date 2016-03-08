@@ -15,18 +15,16 @@
 	)
 	(
 		// Users to add ports here
-		
-        //Inputs from board
-        input clk,
-        input reset, 
-        //Outputs to panel
-        output   [2:0]   led_rgb1,
-        output   [2:0]   led_rgb2,
-        output   [2:0]   led_abc,
-        output           led_clk,
-        output           led_latch,
-        output           led_oe,
-
+		 //Inputs from board
+    input clk,
+    input reset, 
+    //Outputs to panel
+    output   [2:0]   led_rgb1,
+    output   [2:0]   led_rgb2,
+    output   [2:0]   led_abc,
+    output           led_clk,
+    output           led_latch,
+    output           led_oe,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -270,11 +268,11 @@
 	                slv_reg4[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end  
 	          default : begin
-	                      slv_reg0 <= x_address;
-	                      slv_reg1 <= y_address;
-	                      slv_reg2 <= color;
-	                      slv_reg3 <= update_panel;
-	                      slv_reg4 <= new_data;
+	                      slv_reg0 <= slv_reg0;
+	                      slv_reg1 <= slv_reg1;
+	                      slv_reg2 <= slv_reg2;
+	                      slv_reg3 <= slv_reg3;
+	                      slv_reg4 <= slv_reg4;
 	                    end
 	        endcase
 	      end
@@ -415,27 +413,21 @@
 
 	// Add user logic here
 	//reg [C_S_AXI_DATA_WIDTH-1:0]	  slv_reg0; //x_address
-    //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg1; //y-addres
-    //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg2; //color
-    //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg3; //update panel
-    //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg4; //new data
-    wire [4:0] x_address;
-    wire [3:0] y_address;
-    wire [2:0] color;
-    wire update_panel;
-    wire new_data;
-    
-    ledpanel l1
-    (
+  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg1; //y-addres
+  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg2; //color
+  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg3; //update panel
+  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg4; //new data
+  ledpanel l1
+  (
     //Inputs from board
     .clk(clk),
     .reset(reset),
     //Inputs from software
-    .x_address(x_address),
-    .y_address(y_address),
-    .color(color),
-    .update_panel(update_panel),
-    .new_data(new_data),
+    .x_address(slv_reg0[4:0]),
+    .y_address(slv_reg1[3:0]),
+    .color(slv_reg2[2:0]),
+    .update_panel(slv_reg3[0]),
+    .new_data(slv_reg4[0]),
     //Outputs to panel
     .led_rgb1(led_rgb1),
     .led_rgb2(led_rgb2),
@@ -443,7 +435,7 @@
     .led_clk(led_clk),
     .led_latch(led_latch),
     .led_oe(led_oe) 
-    );
+  );
 	// User logic ends
 
 	endmodule
