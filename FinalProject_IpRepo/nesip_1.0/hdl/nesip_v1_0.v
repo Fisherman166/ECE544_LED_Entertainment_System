@@ -77,7 +77,7 @@
 		.S_AXI_RDATA(nes_rdata),
 		.S_AXI_RRESP(nes_rresp),
 		.S_AXI_RVALID(nes_rvalid),
-		.S_AXI_RREADY(nes_rready),
+		.S_AXI_RREADY(nes_rready)
 	);
 
 	// Add user logic here
