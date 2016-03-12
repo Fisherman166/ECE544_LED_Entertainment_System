@@ -38,6 +38,9 @@
 #define FIT_CLOCK_FREQ_HZ       5000
 #define FIT_COUNT_1MSEC         5       // 1msec / (1 / 5KHz)
 
+// This really should be in the LED panel driver software
+// but for some reason Vivado did not want to take the changes
+// so we put it here.
 typedef enum {
 	OFF = 0x0,
 	BLUE = 0x1,

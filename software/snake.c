@@ -22,7 +22,9 @@ void run_snake(u32* timestamp_msecs) {
     u32 screen_updated_at_msecs = 0;
 
     snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
-    srand(*timestamp_msecs);	// This will always be different
+    // This time should always be different since it is very unlikely
+    // that someone would hit start on the menu at the same time, every time
+    srand(*timestamp_msecs);
 
     for(;;) {
     	// Handle the timestamp rollover case
@@ -65,6 +67,10 @@ void run_snake(u32* timestamp_msecs) {
 //*****************************************************************************
 // Supporting functions
 //*****************************************************************************
+
+//*****************************************************************************
+// Top level movement function that handles all snake movement.
+//*****************************************************************************
 snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_cord) {
     snake_piece* new_head;
 
@@ -74,6 +80,7 @@ snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_co
         new_head = normal_move_snake(head, x_cord, y_cord);
     }
     else {
+        // Check if the snake head has hit the food
         if( ((*food)->x_cord == x_cord) && ((*food)->y_cord == y_cord) ) {
             new_head = got_food_move_snake(head, x_cord, y_cord);
             remove_food_piece(food);
@@ -84,6 +91,9 @@ snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_co
     return new_head;
 }
 
+//*****************************************************************************
+// Moves the snake when it has not gotten food
+//*****************************************************************************
 snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
                                                           x_cord,
@@ -93,6 +103,9 @@ snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord)
     return new_head_of_snake;
 }
 
+//*****************************************************************************
+// Moves the snake when it has gotten food
+//*****************************************************************************
 snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
 
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
@@ -101,6 +114,9 @@ snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cor
     return new_head_of_snake;
 }
 
+//*****************************************************************************
+// Calculates the new x and y values for the snake head
+//*****************************************************************************
 void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move,
                         u8* calculated_x_cord, u8* calculated_y_cord) {
     switch(direction_to_move) {
@@ -123,6 +139,9 @@ void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move
     }
 }
 
+//*****************************************************************************
+// Make a new food piece
+//*****************************************************************************
 food_piece* generate_food_piece(snake_piece* head) {
     const u8 x_cord_constraint = MAX_X_CORD + 1;
     const u8 y_cord_constraint = MAX_Y_CORD + 1;
@@ -149,6 +168,9 @@ food_piece* generate_food_piece(snake_piece* head) {
     return generated_food;
 }
 
+//*****************************************************************************
+// Used to check if a food piece or the snake head is in the snake body
+//*****************************************************************************
 bool check_snake_collision(snake_piece* head_of_snake, u8 x_cord_to_check, u8 y_cord_to_check) {
     bool object_in_snake = false;
     snake_piece* current_piece = head_of_snake;
@@ -174,9 +196,12 @@ u8 generate_random_number(const u8 constraint) {
     return random_number;
 }
 
+//*****************************************************************************
+// Creates a new food piece with a random color
+//*****************************************************************************
 food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
     // White is the largest value in the enum
-    const u8 max_color_value = (u8)WHITE + 1
+    const u8 max_color_value = (u8)WHITE + 1;
     food_piece* food = (food_piece*)malloc(sizeof(food_piece));  
     if(food == NULL) {
         PRINT("ERROR mallocing food piece\n");
@@ -186,9 +211,7 @@ food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
     food->x_cord = x_cord;
     food->y_cord = y_cord;
     for(;;) {
-        // Generate a random color using WHITE+1 as the
-        // maximum value
-        food->color = (LED_COLORS)(rand() % max_color_value);
+        food->color = (LED_COLORS)generate_random_number(max_color_value);
         if( (food->color != OFF) && (food->color != BLUE) && (food->color != GREEN) )
             break;
     }
@@ -202,6 +225,10 @@ void remove_food_piece(food_piece** food_to_remove) {
     *food_to_remove = NULL;
 }
 
+//*****************************************************************************
+// Creates a new head for the snake and sets the prev pointer of the current
+// head to the new head
+//*****************************************************************************
 snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
     snake_piece* new_head = create_snake_piece(x_cord, y_cord);
     if(new_head == NULL) {
@@ -215,6 +242,9 @@ snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cor
     return new_head;
 }
 
+//*****************************************************************************
+// Removes the tail of snake and sets the next pointer of the new tail to NULL
+//*****************************************************************************
 bool remove_tail_of_snake(snake_piece* head) {
     snake_piece* current_piece = head;
     snake_piece* previous_piece, *new_tail;
@@ -269,6 +299,9 @@ bool remove_snake_piece(snake_piece* node) {
     return 1;
 }
 
+//*****************************************************************************
+// Reads the controller and figures out which way the snake should move
+//*****************************************************************************
 movement_directions direction_to_move() {
     static movement_directions direction_currently_moving = right;
     buttons buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
@@ -307,6 +340,9 @@ movement_directions direction_to_move() {
     return final_direction_to_move;
 }
 
+//*****************************************************************************
+// Sends all snake and food pixels to the screen and then update the screen
+//*****************************************************************************
 void update_screen(snake_piece* head_of_snake, food_piece* food) {
     snake_piece* current_chunk = head_of_snake;
 
@@ -325,7 +361,9 @@ void update_screen(snake_piece* head_of_snake, food_piece* food) {
     LEDPANEL_updatepanel();
 }
 
-// Return true if one gametick has passed
+//*****************************************************************************
+// Returns true if one gametick has passed
+//*****************************************************************************
 bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
     const u32 msecs_between_update = 500;
     bool retval = false; 
@@ -334,3 +372,4 @@ bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
 
     return retval;
 }
+
