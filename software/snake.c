@@ -15,33 +15,29 @@
 
 void run_snake(u32* timestamp_msecs) {
     const u32 msecs_per_screen_update = 500;
-    const u8 food_counter_iterations = 5;
     movement_directions movement_direction;
     snake_piece* new_head_of_snake;
     u8 next_x_cord, next_y_cord;
-    food_piece* current_food = NULL;
-    u8 food_counter = 0;
+    food_piece* food = NULL;
     bool moving_head_into_body = false;
     u32 screen_updated_at_msecs = 0;
 
     snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
-    srand(1);
+    srand(*timestamp_msecs);	// This will always be different
 
     PRINT("IN SNAKE\n");
 
     for(;;) {
+    	// Handle the timestamp rollover case
+    	if( *timestamp_msecs < screen_updated_at_msecs)  screen_updated_at_msecs = *timestamp_msecs;
+
         if( (*timestamp_msecs - screen_updated_at_msecs) > msecs_per_screen_update) {
             screen_updated_at_msecs = *timestamp_msecs;
 
             // Check if we should spawn a pixel to eat
             // If so, spawn it
-            if(current_food == NULL) {
-            	PRINT("MAKING FOOD\n");
-                food_counter++;
-                if(food_counter == food_counter_iterations) {
-                    food_counter = 0;
-                    current_food = generate_food_piece(head_of_snake);
-                }
+            if(food == NULL) {
+            	food = generate_food_piece(head_of_snake);
             }
 
             // Read controller
@@ -52,37 +48,36 @@ void run_snake(u32* timestamp_msecs) {
             calc_moved_x_and_y(head_of_snake, movement_direction, &next_x_cord, &next_y_cord);
             moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
             if(moving_head_into_body) break;
-            new_head_of_snake = move_snake(head_of_snake, &current_food, next_x_cord, next_y_cord);
+            new_head_of_snake = move_snake(head_of_snake, &food, next_x_cord, next_y_cord);
 
             // Update the screen
             if(new_head_of_snake != NULL) {
             	PRINT("UPDATE SCREEN\n");
                 head_of_snake = new_head_of_snake;
-                update_screen(head_of_snake, current_food);
+                update_screen(head_of_snake, food);
             }
             else {
                 PRINT("Head of snake is NULL. FAILED");
                 break;
             }
-            // TESTING stuff - will be removed
-            /*if(new_head_of_snake != NULL) {
-                print_cords_of_snake(new_head_of_snake);
-            }
-            else {
-                PRINT("FAILED TO MOVE SNAKE\n");
-                break;
-            }
-
-            if(current_food != NULL) {
-                PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
-            }*/
         }
     }
 
     free_snake(head_of_snake);
-    remove_food_piece(&current_food);
+    remove_food_piece(&food);
+}
+// TESTING stuff - will be removed
+/*if(new_head_of_snake != NULL) {
+    print_cords_of_snake(new_head_of_snake);
+}
+else {
+    PRINT("FAILED TO MOVE SNAKE\n");
+    break;
 }
 
+if(current_food != NULL) {
+    PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
+}*/
 //*****************************************************************************
 // Supporting functions
 //*****************************************************************************
@@ -333,18 +328,5 @@ void update_screen(snake_piece* head_of_snake, food_piece* food) {
                             0x2);
     }
     LEDPANEL_updatepanel();
-}
-        
-// Test functions that will be removed
-void print_cords_of_snake(snake_piece* head) {
-    snake_piece* current_piece = head;
-
-    PRINT("X Cord   Y Cord\n");
-    PRINT("------   ------\n");
-
-    while(current_piece != NULL) {
-        PRINT("%02u      %02u\n", current_piece->x_cord, current_piece->y_cord);
-        current_piece = current_piece->next;
-    }
 }
 
