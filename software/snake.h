@@ -22,6 +22,7 @@ typedef struct snake_piece snake_piece;
 struct snake_piece {
     u8 x_cord;
     u8 y_cord;
+    u8 color;
     snake_piece* next;
     snake_piece* prev;
 };
@@ -57,8 +58,8 @@ snake_piece* create_snake_piece(u8, u8);
 bool remove_snake_piece(snake_piece*);
 
 movement_directions direction_to_move();
-
 void update_screen(snake_piece*, food_piece*);
+bool check_gametick(u32, u32);
 
 #endif
 

@@ -38,5 +38,16 @@
 #define FIT_CLOCK_FREQ_HZ       5000
 #define FIT_COUNT_1MSEC         5       // 1msec / (1 / 5KHz)
 
+typedef enum {
+	OFF = 0x0,
+	BLUE = 0x1,
+	GREEN = 0x2,
+	TEAL = 0x3,
+	RED = 0x4,
+	PURPLE = 0x5,
+	YELLOW = 0x6,
+	WHITE = 0x7
+} LED_COLORS;
+
 #endif
 

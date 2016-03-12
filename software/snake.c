@@ -14,7 +14,6 @@
 #define MAX_Y_CORD 15
 
 void run_snake(u32* timestamp_msecs) {
-    const u32 msecs_per_screen_update = 500;
     movement_directions movement_direction;
     snake_piece* new_head_of_snake;
     u8 next_x_cord, next_y_cord;
@@ -25,17 +24,15 @@ void run_snake(u32* timestamp_msecs) {
     snake_piece* head_of_snake = create_snake_piece(STARTING_X_CORD, STARTING_Y_CORD);
     srand(*timestamp_msecs);	// This will always be different
 
-    PRINT("IN SNAKE\n");
-
     for(;;) {
     	// Handle the timestamp rollover case
-    	if( *timestamp_msecs < screen_updated_at_msecs)  screen_updated_at_msecs = *timestamp_msecs;
+    	if( *timestamp_msecs < screen_updated_at_msecs )  screen_updated_at_msecs = *timestamp_msecs;
 
-        if( (*timestamp_msecs - screen_updated_at_msecs) > msecs_per_screen_update) {
+        // Update the state of the game on a gametick
+        if( check_gametick(*timestamp_msecs, screen_updated_at_msecs) ) {
             screen_updated_at_msecs = *timestamp_msecs;
 
-            // Check if we should spawn a pixel to eat
-            // If so, spawn it
+            // Always spawn food right after the last one was eaten
             if(food == NULL) {
             	food = generate_food_piece(head_of_snake);
             }
@@ -44,7 +41,6 @@ void run_snake(u32* timestamp_msecs) {
             movement_direction = direction_to_move();
 
             // Move snake
-            PRINT("MOVING SNAKE\n");
             calc_moved_x_and_y(head_of_snake, movement_direction, &next_x_cord, &next_y_cord);
             moving_head_into_body = check_snake_collision(head_of_snake, next_x_cord, next_y_cord);
             if(moving_head_into_body) break;
@@ -52,7 +48,6 @@ void run_snake(u32* timestamp_msecs) {
 
             // Update the screen
             if(new_head_of_snake != NULL) {
-            	PRINT("UPDATE SCREEN\n");
                 head_of_snake = new_head_of_snake;
                 update_screen(head_of_snake, food);
             }
@@ -61,23 +56,12 @@ void run_snake(u32* timestamp_msecs) {
                 break;
             }
         }
-    }
+    } // for
 
     free_snake(head_of_snake);
     remove_food_piece(&food);
 }
-// TESTING stuff - will be removed
-/*if(new_head_of_snake != NULL) {
-    print_cords_of_snake(new_head_of_snake);
-}
-else {
-    PRINT("FAILED TO MOVE SNAKE\n");
-    break;
-}
 
-if(current_food != NULL) {
-    PRINT("FOOD X = %u, FOOD Y = %u\n", current_food->x_cord, current_food->y_cord);
-}*/
 //*****************************************************************************
 // Supporting functions
 //*****************************************************************************
@@ -218,6 +202,7 @@ snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cor
 
     new_head->next = current_head;
     current_head->prev = new_head;
+    current_head->color = GREEN; //All snake chunks are green but the head
     return new_head;
 }
 
@@ -261,6 +246,7 @@ snake_piece* create_snake_piece(u8 x_cord, u8 y_cord) {
 
     new_piece->x_cord = x_cord;
     new_piece->y_cord = y_cord;
+    new_piece->color = BLUE; //Head of snake is always blue
     new_piece->next = NULL;
     new_piece->prev = NULL;
 
@@ -319,14 +305,23 @@ void update_screen(snake_piece* head_of_snake, food_piece* food) {
     while(current_chunk != NULL) {
         LEDPANEL_writepixel(current_chunk->x_cord,
                             current_chunk->y_cord,
-                            0x2);
+                            current_chunk->color);
         current_chunk = current_chunk->next;
     }
     if(food != NULL) {
         LEDPANEL_writepixel(food->x_cord,
                             food->y_cord,
-                            0x2);
+                            GREEN);
     }
     LEDPANEL_updatepanel();
 }
 
+// Return true if one gametick has passed
+bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
+    const u32 msecs_between_update = 500;
+    bool retval = false; 
+
+    if( (current_msecs - last_msecs_updated) > msecs_between_update ) retval = true;
+
+    return retval;
+}
