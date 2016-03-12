@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "vivado_includes.h"
 #include "stdbool.h"
+#include "controller.h"
 
 #define PRINT xil_printf
 
@@ -30,7 +31,7 @@ typedef struct  {
     u8 y_cord;
 } food_piece;
 
-typedef enum {up, down, left, right, none} buttons;
+typedef enum {up, down, left, right} movement_directions;
 
 //*****************
 // Functions
@@ -40,7 +41,7 @@ void run_snake(u32*);
 snake_piece* move_snake(snake_piece*, food_piece**, u8, u8);
 snake_piece* normal_move_snake(snake_piece*, u8, u8);
 snake_piece* got_food_move_snake(snake_piece*, u8, u8);
-void calc_moved_x_and_y(snake_piece*, buttons, u8*, u8*);
+void calc_moved_x_and_y(snake_piece*, movement_directions, u8*, u8*);
 bool check_snake_collision(snake_piece*, u8, u8);
 
 food_piece* generate_food_piece(snake_piece*);
@@ -55,8 +56,7 @@ void free_snake(snake_piece*);
 snake_piece* create_snake_piece(u8, u8);
 bool remove_snake_piece(snake_piece*);
 
-buttons read_controller();
-buttons direction_to_move();
+movement_directions direction_to_move();
 
 void update_screen(snake_piece*, food_piece*);
 

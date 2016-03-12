@@ -14,9 +14,9 @@
 #define MAX_Y_CORD 15
 
 void run_snake(u32* timestamp_msecs) {
-    const u8 msecs_per_screen_update = 500;
+    const u32 msecs_per_screen_update = 500;
     const u8 food_counter_iterations = 5;
-    buttons movement_direction;
+    movement_directions movement_direction;
     snake_piece* new_head_of_snake;
     u8 next_x_cord, next_y_cord;
     food_piece* current_food = NULL;
@@ -122,9 +122,9 @@ snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cor
     return new_head_of_snake;
 }
 
-void calc_moved_x_and_y(snake_piece* head, buttons button_to_move,
+void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move,
                         u8* calculated_x_cord, u8* calculated_y_cord) {
-    switch(button_to_move) {
+    switch(direction_to_move) {
         case up:
             *calculated_y_cord = head->y_cord + 1;
             *calculated_x_cord = head->x_cord;
@@ -140,9 +140,6 @@ void calc_moved_x_and_y(snake_piece* head, buttons button_to_move,
         case right:
             *calculated_y_cord = head->y_cord;
             *calculated_x_cord = head->x_cord + 1;
-            break;
-        case none:
-            PRINT("ERROR: In the none movement state somehow\n");
             break;
     }
 }
@@ -282,53 +279,39 @@ bool remove_snake_piece(snake_piece* node) {
     return 1;
 }
 
-buttons read_controller() {
-    const u8 right_button_mask = 0x1;
-    const u8 left_button_mask = 0x2;
-    const u8 down_button_mask = 0x8;
-    const u8 up_button_mask = 0x4;
-    buttons return_button;
-
-    u8 controller_status = NES_read(CONTROLLER1_DEV_ID);
-
-    if(~controller_status & right_button_mask) return_button = right;
-    else if(~controller_status & left_button_mask) return_button = left;
-    else if(~controller_status & down_button_mask) return_button = down;
-    else if(~controller_status & up_button_mask) return_button = up;
-    else return_button = none;
-
-    return return_button;
-}
-
-buttons direction_to_move() {
-    static buttons direction_currently_moving = right;
-    buttons button_pressed = read_controller();
-    buttons final_direction_to_move;
-    bool button_conflicts = false;
-
-    if(button_pressed == up) {
-        if(direction_currently_moving == down) button_conflicts = true;
-    }
-    else if(button_pressed == down) {
-        if(direction_currently_moving == up) button_conflicts = true;
-    }
-    else if(button_pressed == right) {
-        if(direction_currently_moving == left) button_conflicts = true;
-    }
-    else if(button_pressed == left) {
-        if(direction_currently_moving == right) button_conflicts = true;
-    }
-    else if(button_pressed == none) button_conflicts = true;  //The no button pressed case
+movement_directions direction_to_move() {
+    static movement_directions direction_currently_moving = right;
+    buttons buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
+    movement_directions final_direction_to_move;
 
     // If the direction asked for by the button press tries to move back into
     // the body of the snake, we need to block that action. Instead, the snake
     // will keep moving the same direction as it was before the button press
-    if(button_conflicts) {
-        final_direction_to_move = direction_currently_moving;
+    if(buttons_pressed.up) {
+        if(direction_currently_moving == down) {
+        	final_direction_to_move = direction_currently_moving;
+        }
+        else final_direction_to_move = up;
     }
-    else {
-        final_direction_to_move = button_pressed;
+    else if(buttons_pressed.down) {
+    	if(direction_currently_moving == up) {
+    		final_direction_to_move = direction_currently_moving;
+    	}
+    	else final_direction_to_move = down;
     }
+    else if(buttons_pressed.right) {
+    	if(direction_currently_moving == left) {
+    		final_direction_to_move = direction_currently_moving;
+    	}
+    	else final_direction_to_move = right;
+    }
+    else if(buttons_pressed.left) {
+    	if(direction_currently_moving == right) {
+    		final_direction_to_move = direction_currently_moving;
+    	}
+    	else final_direction_to_move = left;
+    }
+    else final_direction_to_move = direction_currently_moving; // No buttons have been pressed
 
     direction_currently_moving = final_direction_to_move;
     return final_direction_to_move;

@@ -15,9 +15,6 @@
 	)
 	(
 		// Users to add ports here
-		//Inputs from board
-        input clk,
-        input reset, 
         //Outputs to panel
         output  [2:0]   led_rgb1,
         output  [2:0]   led_rgb2,
@@ -25,11 +22,6 @@
         output          led_clk,
         output          led_latch,
         output          led_oe,
-        output  [2:0]   color,
-        output  [4:0]   x_address,
-        output  [3:0]   y_address,
-        output          update_panel,
-        output          new_data,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -417,17 +409,7 @@
 
 
 	// Add user logic here
-	//reg [C_S_AXI_DATA_WIDTH-1:0]	  slv_reg0; //x_address
-  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg1; //y-addres
-  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg2; //color
-  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg3; //update panel
-  //reg [C_S_AXI_DATA_WIDTH-1:0]    slv_reg4; //new data
 
-    assign color = slv_reg2[2:0];
-    assign y_address = slv_reg1[3:0];
-    assign x_address = slv_reg0[4:0];
-    assign update_panel = slv_reg3[0];
-    assign new_data = slv_reg4[0];
     ledpanel l1
     (
         //Inputs from board
