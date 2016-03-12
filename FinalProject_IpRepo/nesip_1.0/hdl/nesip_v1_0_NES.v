@@ -95,6 +95,7 @@
 	reg [1 : 0] 	axi_rresp;
 	reg  	axi_rvalid;
 	wire [7:0] nes_btns;
+	
 
 	// Example-specific design signals
 	// local parameter for addressing 32 bit / 64 bit C_S_AXI_DATA_WIDTH

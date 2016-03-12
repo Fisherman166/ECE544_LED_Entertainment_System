@@ -173,7 +173,7 @@ module nescontrol
     begin
       nes_latch  <= 1'b0;
       nes_pulse  <= 1'b0;
-      nes_btns  <= 8'hFF;
+      nes_btns  <= 8'h00;
     end
     IDLE: //Waiting for 100 hz tick.  
     begin

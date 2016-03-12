@@ -14,7 +14,7 @@
 #define MAX_Y_CORD 15
 
 void run_snake(u32* timestamp_msecs) {
-    const u8 msecs_per_screen_update = 200;
+    const u8 msecs_per_screen_update = 500;
     const u8 food_counter_iterations = 5;
     buttons movement_direction;
     snake_piece* new_head_of_snake;
@@ -285,16 +285,16 @@ bool remove_snake_piece(snake_piece* node) {
 buttons read_controller() {
     const u8 right_button_mask = 0x1;
     const u8 left_button_mask = 0x2;
-    const u8 down_button_mask = 0x4;
-    const u8 up_button_mask = 0x8;
+    const u8 down_button_mask = 0x8;
+    const u8 up_button_mask = 0x4;
     buttons return_button;
 
     u8 controller_status = NES_read(CONTROLLER1_DEV_ID);
 
-    if(controller_status & right_button_mask) return_button = right;
-    else if(controller_status & left_button_mask) return_button = left;
-    else if(controller_status & down_button_mask) return_button = down;
-    else if(controller_status & up_button_mask) return_button = up;
+    if(~controller_status & right_button_mask) return_button = right;
+    else if(~controller_status & left_button_mask) return_button = left;
+    else if(~controller_status & down_button_mask) return_button = down;
+    else if(~controller_status & up_button_mask) return_button = up;
     else return_button = none;
 
     return return_button;

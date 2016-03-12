@@ -28,14 +28,12 @@
  * @note    Self test may fail if data memory and device are not on the same bus.
  *
  */
-XStatus LEDPANEL_Reg_SelfTest(void * baseaddr_p)
+XStatus LEDPANEL_Reg_SelfTest(u32 baseaddr)
 {
-	u32 baseaddr;
 	int write_loop_index;
 	int read_loop_index;
 	int Index;
 
-	baseaddr = (u32) baseaddr_p;
 
 	xil_printf("******************************\n\r");
 	xil_printf("* User Peripheral Self Test\n\r");

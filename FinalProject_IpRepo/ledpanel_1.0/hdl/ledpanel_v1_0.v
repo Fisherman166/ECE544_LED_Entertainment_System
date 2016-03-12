@@ -15,16 +15,21 @@
 	)
 	(
 		// Users to add ports here
-    //Inputs from board
-    input clk,
-    input reset, 
-    //Outputs to panel
-    output   [2:0]   led_rgb1,
-    output   [2:0]   led_rgb2,
-    output   [2:0]   led_abc,
-    output           led_clk,
-    output           led_latch,
-    output           led_oe,
+        //Inputs from board
+        input clk,
+        input reset, 
+        //Outputs to panel
+        output   [2:0]  led_rgb1,
+        output   [2:0]  led_rgb2,
+        output   [2:0]  led_abc,
+        output          led_clk,
+        output          led_latch,
+        output          led_oe,
+        output  [2:0]   color,
+        output  [4:0]   x_address,
+        output  [3:0]   y_address,
+        output          update_panel,
+        output          new_data,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -80,14 +85,21 @@
 		.S_AXI_RVALID(ledpanel_rvalid),
 		.S_AXI_RREADY(ledpanel_rready),
 		
-    .clk(clk),
-    .reset(reset),
-    .led_rgb1(led_rgb1),
-    .led_rgb2(led_rgb2),
-    .led_abc(led_abc),
-    .led_clk(led_clk),
-    .led_latch(led_latch),
-    .led_oe(led_latch)
+        .clk(clk),
+        .reset(reset),
+        
+        .led_rgb1(led_rgb1),
+        .led_rgb2(led_rgb2),
+        .led_abc(led_abc),
+        .led_clk(led_clk),
+        .led_latch(led_latch),
+        .led_oe(led_oe),
+        
+        .color(color),
+        .x_address(x_address),
+        .y_address(y_address),
+        .update_panel(update_panel),
+        .new_data(new_data)
 
 	);
 

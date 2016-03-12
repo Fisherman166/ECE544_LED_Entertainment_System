@@ -86,7 +86,7 @@ module ledpanel
   // generate update clock enable
 	always @(posedge clk)
 	begin
-		if (reset)	//Reset count to 0
+		if (reset == 1'b0)	//Reset count to 0
 		begin
 			clk_cnt_shift <= {CNTR_WIDTH{1'b0}};
       tick_shift <= 1'b0;
@@ -106,7 +106,7 @@ module ledpanel
   // generate update clock enable
 	always @(posedge clk)
 	begin
-		if (reset)	//Reset count to 0
+		if (reset == 1'b0)	//Reset count to 0
 		begin
 			clk_cnt_update <= {CNTR_WIDTH{1'b0}};
       tick_update <= 1'b0;
@@ -156,7 +156,7 @@ module ledpanel
   //Sequential logic
   always @ (posedge clk)
   begin
-    if(reset)
+    if(reset == 1'b0 )
       data_state <= DATA_IDLE;
     else 
       data_state <= data_nextstate;
@@ -242,7 +242,7 @@ module ledpanel
   //Sequential logic
   always @ (posedge clk)
   begin
-    if(reset)
+    if(reset == 1'b0)
       panel_state <= IDLE;
     else if (tick_shift)
       panel_state <= panel_nextstate;

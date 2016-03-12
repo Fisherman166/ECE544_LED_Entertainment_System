@@ -64,7 +64,7 @@
  * If the hardware system is not built correctly, this function may never
  * return to the caller.
  *
- * @param   baseaddr_p is the base address of the LEDPANEL instance to be worked on.
+ * @param   baseaddr is the base address of the LEDPANEL instance to be worked on.
  *
  * @return
  *
@@ -75,29 +75,29 @@
  * @note    Self test may fail if data memory and device are not on the same bus.
  *
  */
-XStatus LEDPANEL_Reg_SelfTest(void * baseaddr_p);
+XStatus LEDPANEL_Reg_SelfTest(u32 baseaddr);
 
 /**
 * Initialize LED panel with base register address
-* @param baseaddr_p - 32 bit pointer to base register address
+* @param baseaddr - 32 bit pointer to base register address
 * @return 
 *    - XST_SUCCESS   if all self-test code passed
 *    - XST_FAILURE   if any self-test code failed
 */
-XST_SUCCESS LEDPANEL_initialize(void * baseaddr_p);
+XStatus LEDPANEL_initialize(u32 baseaddr);
 
 /**
 * Signals to the hw that there is new data to saved for led panel
 * @param x, y, color
 * @return XST_SUCCESS   
 */
-XST_SUCCESS LEDPANEL_writepixel(u8 x, u8 y, u8 color);
+XStatus LEDPANEL_writepixel(u8 x, u8 y, u8 color);
 
 /**
 * Signals to the hw that there is new data to saved for led panel
 * @param none
 * @return XST_SUCCESS   
 */
-XST_SUCCESS LEDPANEL_updatepanel();
+XStatus LEDPANEL_updatepanel();
 
 #endif // LEDPANEL_H
