@@ -175,6 +175,8 @@ u8 generate_random_number(const u8 constraint) {
 }
 
 food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
+    // White is the largest value in the enum
+    const u8 max_color_value = (u8)WHITE + 1
     food_piece* food = (food_piece*)malloc(sizeof(food_piece));  
     if(food == NULL) {
         PRINT("ERROR mallocing food piece\n");
@@ -183,6 +185,13 @@ food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
 
     food->x_cord = x_cord;
     food->y_cord = y_cord;
+    for(;;) {
+        // Generate a random color using WHITE+1 as the
+        // maximum value
+        food->color = (LED_COLORS)(rand() % max_color_value);
+        if( (food->color != OFF) && (food->color != BLUE) && (food->color != GREEN) )
+            break;
+    }
 
     return food;
 }
@@ -311,7 +320,7 @@ void update_screen(snake_piece* head_of_snake, food_piece* food) {
     if(food != NULL) {
         LEDPANEL_writepixel(food->x_cord,
                             food->y_cord,
-                            GREEN);
+                            food->color);
     }
     LEDPANEL_updatepanel();
 }

@@ -22,7 +22,7 @@ typedef struct snake_piece snake_piece;
 struct snake_piece {
     u8 x_cord;
     u8 y_cord;
-    u8 color;
+    LED_COLORS color;
     snake_piece* next;
     snake_piece* prev;
 };
@@ -30,6 +30,7 @@ struct snake_piece {
 typedef struct  {
     u8 x_cord;
     u8 y_cord;
+    LED_COLORS color;
 } food_piece;
 
 typedef enum {up, down, left, right} movement_directions;
