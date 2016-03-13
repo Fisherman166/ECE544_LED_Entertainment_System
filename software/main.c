@@ -8,6 +8,7 @@
 
 #include "main.h"
 #include "snake.h"
+#include "pong.h"
 
 // IP instances
 XIntc interrupt_controller;
@@ -22,7 +23,10 @@ int main() {
     if(status != XST_SUCCESS) PRINT("FAILED TO INIT DEVICES\n");
     else {
     	PRINT("INIT SUCCESS\n");
-    	run_snake(&timestamp_msecs);
+    	//for(;;) {
+    		run_snake(&timestamp_msecs);
+    		//run_pong(&timestamp_msecs);
+    	//}
     }
     
     return 0;

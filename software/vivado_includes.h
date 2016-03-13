@@ -38,6 +38,8 @@
 #define FIT_CLOCK_FREQ_HZ       5000
 #define FIT_COUNT_1MSEC         5       // 1msec / (1 / 5KHz)
 
+#define PRINT xil_printf
+
 // This really should be in the LED panel driver software
 // but for some reason Vivado did not want to take the changes
 // so we put it here.
@@ -51,6 +53,9 @@ typedef enum {
 	YELLOW = 0x6,
 	WHITE = 0x7
 } LED_COLORS;
+
+#define MAX_X_CORD 31
+#define MAX_Y_CORD 15
 
 #endif
 

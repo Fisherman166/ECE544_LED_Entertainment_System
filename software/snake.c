@@ -10,9 +10,53 @@
 
 #define STARTING_X_CORD 15
 #define STARTING_Y_CORD 7
-#define MAX_X_CORD 31
-#define MAX_Y_CORD 15
 
+typedef struct snake_piece snake_piece;
+
+struct snake_piece {
+    u8 x_cord;
+    u8 y_cord;
+    LED_COLORS color;
+    snake_piece* next;
+    snake_piece* prev;
+};
+
+typedef struct {
+    u8 x_cord;
+    u8 y_cord;
+    LED_COLORS color;
+} food_piece;
+
+typedef enum {up, down, left, right} movement_directions;
+
+//*****************************************************************************
+// Private functions
+//*****************************************************************************
+static snake_piece* move_snake(snake_piece*, food_piece**, u8, u8);
+static snake_piece* normal_move_snake(snake_piece*, u8, u8);
+static snake_piece* got_food_move_snake(snake_piece*, u8, u8);
+static void calc_moved_x_and_y(snake_piece*, movement_directions, u8*, u8*);
+static bool check_snake_collision(snake_piece*, u8, u8);
+
+static food_piece* generate_food_piece(snake_piece*);
+static u8 generate_random_number(const u8);
+static food_piece* create_food_piece(u8, u8);
+static void remove_food_piece(food_piece**);
+
+static snake_piece* insert_head_of_snake(snake_piece*, u8, u8);
+static bool remove_tail_of_snake(snake_piece*);
+static void free_snake(snake_piece*);
+
+static snake_piece* create_snake_piece(u8, u8);
+static bool remove_snake_piece(snake_piece*);
+
+static movement_directions direction_to_move();
+static void update_screen(snake_piece*, food_piece*);
+static bool check_gametick(u32, u32);
+
+//*****************************************************************************
+// Public functions
+//*****************************************************************************
 void run_snake(u32* timestamp_msecs) {
     movement_directions movement_direction;
     snake_piece* new_head_of_snake;
@@ -71,7 +115,7 @@ void run_snake(u32* timestamp_msecs) {
 //*****************************************************************************
 // Top level movement function that handles all snake movement.
 //*****************************************************************************
-snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_cord) {
+static snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_cord) {
     snake_piece* new_head;
 
     if(x_cord > MAX_X_CORD) new_head = NULL;
@@ -94,7 +138,7 @@ snake_piece* move_snake(snake_piece* head, food_piece** food, u8 x_cord, u8 y_co
 //*****************************************************************************
 // Moves the snake when it has not gotten food
 //*****************************************************************************
-snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
+static snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
                                                           x_cord,
                                                           y_cord);
@@ -106,7 +150,7 @@ snake_piece* normal_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord)
 //*****************************************************************************
 // Moves the snake when it has gotten food
 //*****************************************************************************
-snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
+static snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cord) {
 
     snake_piece* new_head_of_snake = insert_head_of_snake(head_of_snake,
                                                           x_cord,
@@ -117,7 +161,7 @@ snake_piece* got_food_move_snake(snake_piece* head_of_snake, u8 x_cord, u8 y_cor
 //*****************************************************************************
 // Calculates the new x and y values for the snake head
 //*****************************************************************************
-void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move,
+static void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move,
                         u8* calculated_x_cord, u8* calculated_y_cord) {
     switch(direction_to_move) {
         case up:
@@ -142,7 +186,7 @@ void calc_moved_x_and_y(snake_piece* head, movement_directions direction_to_move
 //*****************************************************************************
 // Make a new food piece
 //*****************************************************************************
-food_piece* generate_food_piece(snake_piece* head) {
+static food_piece* generate_food_piece(snake_piece* head) {
     const u8 x_cord_constraint = MAX_X_CORD + 1;
     const u8 y_cord_constraint = MAX_Y_CORD + 1;
     u8 generated_x_cord, generated_y_cord;
@@ -171,7 +215,7 @@ food_piece* generate_food_piece(snake_piece* head) {
 //*****************************************************************************
 // Used to check if a food piece or the snake head is in the snake body
 //*****************************************************************************
-bool check_snake_collision(snake_piece* head_of_snake, u8 x_cord_to_check, u8 y_cord_to_check) {
+static bool check_snake_collision(snake_piece* head_of_snake, u8 x_cord_to_check, u8 y_cord_to_check) {
     bool object_in_snake = false;
     snake_piece* current_piece = head_of_snake;
 
@@ -191,7 +235,7 @@ bool check_snake_collision(snake_piece* head_of_snake, u8 x_cord_to_check, u8 y_
 // Generates a random number between 0 and
 // constraint - 1
 //****************************************
-u8 generate_random_number(const u8 constraint) {
+static u8 generate_random_number(const u8 constraint) {
     u8 random_number = (u8)(rand() % constraint);
     return random_number;
 }
@@ -199,7 +243,7 @@ u8 generate_random_number(const u8 constraint) {
 //*****************************************************************************
 // Creates a new food piece with a random color
 //*****************************************************************************
-food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
+static food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
     // White is the largest value in the enum
     const u8 max_color_value = (u8)WHITE + 1;
     food_piece* food = (food_piece*)malloc(sizeof(food_piece));  
@@ -219,7 +263,7 @@ food_piece* create_food_piece(u8 x_cord, u8 y_cord) {
     return food;
 }
 
-void remove_food_piece(food_piece** food_to_remove) {
+static void remove_food_piece(food_piece** food_to_remove) {
     if(*food_to_remove == NULL) return;
     free(*food_to_remove);
     *food_to_remove = NULL;
@@ -229,7 +273,7 @@ void remove_food_piece(food_piece** food_to_remove) {
 // Creates a new head for the snake and sets the prev pointer of the current
 // head to the new head
 //*****************************************************************************
-snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
+static snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cord) {
     snake_piece* new_head = create_snake_piece(x_cord, y_cord);
     if(new_head == NULL) {
         PRINT("Failed to create new head of snake\n");
@@ -245,7 +289,7 @@ snake_piece* insert_head_of_snake(snake_piece* current_head, u8 x_cord, u8 y_cor
 //*****************************************************************************
 // Removes the tail of snake and sets the next pointer of the new tail to NULL
 //*****************************************************************************
-bool remove_tail_of_snake(snake_piece* head) {
+static bool remove_tail_of_snake(snake_piece* head) {
     snake_piece* current_piece = head;
     snake_piece* previous_piece, *new_tail;
 
@@ -265,7 +309,7 @@ bool remove_tail_of_snake(snake_piece* head) {
 //*********************************************************
 // Free's the entire snake for cleanup
 //*********************************************************
-void free_snake(snake_piece* head) {
+static void free_snake(snake_piece* head) {
     snake_piece* current_piece = head;
     snake_piece* next_piece;
 
@@ -276,7 +320,7 @@ void free_snake(snake_piece* head) {
     }
 }
 
-snake_piece* create_snake_piece(u8 x_cord, u8 y_cord) {
+static snake_piece* create_snake_piece(u8 x_cord, u8 y_cord) {
     snake_piece* new_piece = (snake_piece*)malloc(sizeof(snake_piece));
     if(new_piece == NULL) {
         PRINT("FAILED TO MALLOC SNAKE PIECE\n");
@@ -292,7 +336,7 @@ snake_piece* create_snake_piece(u8 x_cord, u8 y_cord) {
     return new_piece;
 }
 
-bool remove_snake_piece(snake_piece* node) {
+static bool remove_snake_piece(snake_piece* node) {
     if(node == NULL) return 0;
 
     free(node);
@@ -302,7 +346,7 @@ bool remove_snake_piece(snake_piece* node) {
 //*****************************************************************************
 // Reads the controller and figures out which way the snake should move
 //*****************************************************************************
-movement_directions direction_to_move() {
+static movement_directions direction_to_move() {
     static movement_directions direction_currently_moving = right;
     buttons buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
     movement_directions final_direction_to_move;
@@ -343,7 +387,7 @@ movement_directions direction_to_move() {
 //*****************************************************************************
 // Sends all snake and food pixels to the screen and then update the screen
 //*****************************************************************************
-void update_screen(snake_piece* head_of_snake, food_piece* food) {
+static void update_screen(snake_piece* head_of_snake, food_piece* food) {
     snake_piece* current_chunk = head_of_snake;
 
     //First put all of the snake pixels on the screen
@@ -364,7 +408,7 @@ void update_screen(snake_piece* head_of_snake, food_piece* food) {
 //*****************************************************************************
 // Returns true if one gametick has passed
 //*****************************************************************************
-bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
+static bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
     const u32 msecs_between_update = 500;
     bool retval = false; 
 

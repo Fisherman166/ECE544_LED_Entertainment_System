@@ -2,23 +2,20 @@
 //
 // Project: ECE544 Final Project
 // Team: Sean Koppenhafer, Nathan Morelli, Jessica Bare
-// File: snake.h
+// File: pong.h
 //
 //*****************************************************************************
 
-#ifndef SNAKE_H
-#define SNAKE_H
+#ifndef PONG_H
+#define PONG_H
 
-#include <stdlib.h>
-#include <stdio.h>
 #include "vivado_includes.h"
-#include "stdbool.h"
 #include "controller.h"
 
-//*****************
-// Functions
-//*****************
-void run_snake(u32*);
+//*****************************************************************************
+// Public Functions
+//*****************************************************************************
+void run_pong(u32*);
 
-#endif
+#endif // PONG_H
 
