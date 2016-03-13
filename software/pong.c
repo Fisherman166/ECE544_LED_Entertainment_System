@@ -11,6 +11,7 @@
 #define NUM_PIXELS_IN_PADDEL 5
 #define PLAYER1_STARTING_X_CORD 1
 #define PLAYER2_STARTING_X_CORD (MAX_X_CORD - 1)
+#define PADDLE_STARTING_Y_CORD 8
 
 typedef struct {
     u16 controller_device_id;
@@ -21,17 +22,18 @@ typedef struct {
 
 static void move_paddle(paddle*);
 static void draw_paddle(paddle*);
+static void update_screen(paddle*, paddle*);
 static bool check_gametick(u32, u32);
 
 void run_pong(u32* time_msecs) {
     paddle player1 = {CONTROLLER1_DEV_ID,
-                       1,
-                       8,
-                       BLUE};
+                      PLAYER1_STARTING_X_CORD,
+                      PADDLE_STARTING_Y_CORD,
+                      RED};
     paddle player2 = {CONTROLLER2_DEV_ID,
-                       14,
-                       8,
-                       RED};
+                      PLAYER2_STARTING_X_CORD,
+                      PADDLE_STARTING_Y_CORD,
+                      BLUE};
     u32 last_msecs_updated = 0;
 
     for(;;) {
@@ -42,8 +44,7 @@ void run_pong(u32* time_msecs) {
     	if( check_gametick(*time_msecs, last_msecs_updated) ) {
     		last_msecs_updated = *time_msecs;
     		move_paddle(&player1);
-    		draw_paddle(&player1);
-    		draw_paddle(&player2);
+    		update_screen(&player1, &player2);
     	}
     }
 }
@@ -65,36 +66,39 @@ static void move_paddle(paddle* paddle_to_move) {
 
     if(controller.up) {
         calculated_y_cord = paddle_to_move->top_of_paddle_y_cord + 1;
-        xil_printf("UP Y CORD: %d\n", calculated_y_cord);
         if(calculated_y_cord <= max_top_of_paddle_cord)
             paddle_to_move->top_of_paddle_y_cord = calculated_y_cord;
     }
     else if(controller.down) {
         calculated_y_cord = paddle_to_move->top_of_paddle_y_cord - 1;
-        xil_printf("DOWN Y CORD: %d\n",calculated_y_cord);
         if(calculated_y_cord >= min_top_of_paddle_cord)
         	paddle_to_move->top_of_paddle_y_cord = calculated_y_cord;
     }
 }
 
 static void draw_paddle(paddle* paddle_to_draw) {
-    u8 top_y = paddle_to_draw->top_of_paddle_y_cord;
-    u8 bottom_y = top_y - NUM_PIXELS_IN_PADDEL;
-    u8 current_y;
+    const u8 top_y = paddle_to_draw->top_of_paddle_y_cord;
+    const int bottom_y = (int)(top_y - NUM_PIXELS_IN_PADDEL); // This goes negative at minimum y cord
+    int current_y;
 
     for(current_y = top_y; current_y > bottom_y; current_y--) {
         LEDPANEL_writepixel(paddle_to_draw->x_cord,
                             current_y,
                             paddle_to_draw->color);
     }
-    LEDPANEL_updatepanel();
 }
- 
+
+static void update_screen(paddle* player1_paddle, paddle* player2_paddle) {
+	draw_paddle(player1_paddle);
+	draw_paddle(player2_paddle);
+	LEDPANEL_updatepanel();
+}
+
 //*****************************************************************************
 // Returns true if one gametick has passed
 //*****************************************************************************
 static bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
-    const u32 msecs_between_update = 500;
+    const u32 msecs_between_update = 200;
     bool retval = false; 
 
     if( (current_msecs - last_msecs_updated) > msecs_between_update ) retval = true;

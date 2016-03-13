@@ -8,7 +8,8 @@
 
 #include "main.h"
 #include "snake.h"
-#include "pong.h"
+#include "menu.h"
+
 
 // IP instances
 XIntc interrupt_controller;
@@ -19,14 +20,21 @@ volatile u32 timestamp_msecs = 0;
 int main() {
     XStatus status;
 
+    u8 current_game = CHOOSE_NUM;
+
     status = init_devices();
     if(status != XST_SUCCESS) PRINT("FAILED TO INIT DEVICES\n");
     else {
-    	PRINT("INIT SUCCESS\n");
-    	//for(;;) {
-    		run_snake(&timestamp_msecs);
-    		//run_pong(&timestamp_msecs);
-    	//}
+
+      for(;;) {
+        current_game = select_game(&timestamp_msecs);
+
+        if(current_game == SNAKE_NUM) run_snake(&timestamp_msecs);
+        else if(current_game == DRAW_NUM) run_draw(&timestamp_msecs);
+        else if(current_game == PONG_NUM) run_pong(&timestamp_msecs);
+
+      }
+
     }
     
     return 0;

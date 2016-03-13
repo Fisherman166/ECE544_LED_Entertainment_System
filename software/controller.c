@@ -22,6 +22,8 @@ buttons read_controller(u16 controller_device_id) {
 
     u8 controller_value = NES_read(controller_device_id);
 
+    controller_value = ~controller_value;
+
     if(controller_value & right_button_mask) controller.right = true;
     if(controller_value & left_button_mask) controller.left = true;
     if(controller_value & up_button_mask) controller.up = true;
