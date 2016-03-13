@@ -9,7 +9,8 @@
 #include "main.h"
 #include "snake.h"
 #include "menu.h"
-
+#include "pong.h"
+#include "draw.h"
 
 // IP instances
 XIntc interrupt_controller;
