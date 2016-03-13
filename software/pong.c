@@ -15,6 +15,11 @@
 #define BALL_STARTING_X_CORD 16
 #define BALL_STARTING_Y_CORD 8
 
+
+typedef enum {NONE, BOUNDRY, PADDLE_PIXEL1, PADDLE_PIXEL2, PADDLE_PIXEL3,
+              PADDLE_PIXEL4, PADDLE_PIXEL5, SCORE1, SCORE2} collision_type;
+typedef enum {STRAIGHT, OVER1_UP1, OVER2_UP1} velocities;
+
 typedef struct {
     u16 controller_device_id;
     u8 x_cord;
@@ -27,9 +32,9 @@ typedef struct {
     short y_cord;
     short x_velocity;
     short y_velocity;
+    velocities velocity;
 } ball;
 
-typedef enum {NONE, BOUNDRY, PADDLE, SCORE} collision_type;
 
 //*****************************************************************************
 // Private functions
@@ -37,12 +42,15 @@ typedef enum {NONE, BOUNDRY, PADDLE, SCORE} collision_type;
 static collision_type check_collision(ball*, paddle*, paddle*);
 static bool check_paddle_collision(ball*, paddle*);
 static bool move_ball(ball*, paddle*, paddle*);
+static short change_velocity(short, short);
+static bool positive_number(short);
 static short invert_velocity(short);
 static void move_paddle(paddle*);
 static void draw_paddle(paddle*);
 static void update_screen(ball*, paddle*, paddle*);
 static bool check_gametick(u32, u32);
 static void handle_score(ball*);
+static bool check_exit(u16);
 
 //*****************************************************************************
 // Global variables
@@ -62,7 +70,8 @@ void run_pong(u32* time_msecs) {
     ball ball1 = {BALL_STARTING_X_CORD,
                   BALL_STARTING_Y_CORD,
                   1,
-                  0};
+                  0,
+                  STRAIGHT};
 
     u32 last_msecs_updated = 0;
     bool player_scored = false;
@@ -74,8 +83,11 @@ void run_pong(u32* time_msecs) {
     	// Update the game
     	if( check_gametick(*time_msecs, last_msecs_updated) ) {
     		last_msecs_updated = *time_msecs;
+            
+            if( check_exit(player1->controller_device_id) ) break;
+
     		move_paddle(&player1);
-            //move_paddle(&player2);
+            move_paddle(&player2)
             player_scored = move_ball(&ball1, &player1, &player2);
             
             if(player_scored) {
@@ -100,42 +112,165 @@ static collision_type check_collision(ball* check_ball, paddle* player1,
     else if(check_ball->y_cord <= 0) collision = BOUNDRY;
 
     // Check for hitting sides of the LED panel
-    if(check_ball->x_cord >= MAX_X_CORD) collision = SCORE;
-    else if(check_ball->x_cord <= 0) collision = SCORE;
+    if(check_ball->x_cord >= MAX_X_CORD) collision = SCORE1;
+    else if(check_ball->x_cord <= 0) collision = SCORE2;
 
     // Check for the ball hitting the square just before the paddle
     if( check_ball->x_cord == (player1->x_cord + 1) ) {
-        if( check_paddle_collision(check_ball, player1) )
-            collision = PADDLE;
+        collision = check_paddle_collision(check_ball, player1);
     }
     else if( check_ball->x_cord == (player2->x_cord - 1) ) {
-        if( check_paddle_collision(check_ball, player2) )
-            collision = PADDLE;
+        collision = check_paddle_collision(check_ball, player2);
     }
     return collision;
 }
 
-static bool check_paddle_collision(ball* check_ball, paddle* check_paddle) {
-    bool test1 = check_ball->y_cord <= check_paddle->top_of_paddle_y_cord;
-    bool test2 = check_ball->y_cord > (check_paddle->top_of_paddle_y_cord - NUM_PIXELS_IN_PADDEL);
-    bool collision = test1 && test2;
+static collision_type check_paddle_collision(ball* check_ball, paddle* check_paddle) {
+    collision_type collision = NONE;
+
+    // Starting with the top pixel of the paddle
+    bool pixel1 = (check_ball->y_cord == check_paddle->top_of_paddle_y_cord);
+    bool pixel2 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 1));
+    bool pixel3 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 2));
+    bool pixel4 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 3));
+    bool pixel5 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 4));
+
+    if(pixel1) collision = PADDLE_PIXEL1;
+    else if(pixel2) collision = PADDLE_PIXEL2;
+    else if(pixel3) collision = PADDLE_PIXEL3;
+    else if(pixel4) collision = PADDLE_PIXEL4;
+    else if(pixel5) collision = PADDLE_PIXEL5;
+
     return collision;
 }
 
 static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
     collision_type collision = check_collision(ball1, player1, player2);
-    bool scored = (collision == SCORE);
+    bool scored = (collision == SCORE1) || (collision == SCORE2);
+    bool hit_paddle = ( (collision == PADDLE_PIXEL1) ||
+                        (collision == PADDLE_PIXEL2) ||
+                        (collision == PADDLE_PIXEL3) ||
+                        (collision == PADDLE_PIXEL4) ||
+                        (collision == PADDLE_PIXEL5) );
 
     if(collision == BOUNDRY) {
         ball1->y_velocity = invert_velocity(ball1->y_velocity);
     }
-    else if(collision == PADDLE) {
-        ball1->x_velocity = invert_velocity(ball1->x_velocity);
+    else if(hit_paddle) {
+        if(ball1->velocity == STRAIGHT) {
+            switch(collision) {
+                case PADDLE_PIXEL1:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL2:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER1_UP1;
+                    break;
+                case PADDLE_PIXEL3:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 0;
+                    ball1->velocity = STRAIGHT;
+                    break;
+                case PADDLE_PIXEL4:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
+                    ball1->velocity = OVER1_UP1;
+                    break;
+                case PADDLE_PIXEL5:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
+                    ball1->velocity = OVER2_UP1;
+                    break;
+            }
+        }
+        else if(ball1->velocity == OVER1_UP1) {
+            switch(collision) {
+                case PADDLE_PIXEL1:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL2:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL3:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER1_UP1;
+                    break;
+                case PADDLE_PIXEL4:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 0;
+                    ball1->velocity = STRAIGHT;
+                    break;
+                case PADDLE_PIXEL5:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
+                    ball1->velocity = OVER1_UP1;
+                    break;
+            }
+        }
+        else if(ball1->velocity == OVER2_UP1) {
+            switch(collision) {
+                case PADDLE_PIXEL1:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL2:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL3:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL4:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
+                    ball1->velocity = OVER1_UP1;
+                    break;
+                case PADDLE_PIXEL5:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
+                    ball1->velocity = OVER2_UP1;
+                    break;
+            }
+        }
     }
     
     ball1->x_cord += ball1->x_velocity;
     ball1->y_cord += ball1->y_velocity;
     return scored;
+}
+
+// New velocity is a positive velocity number
+// Current velocity is used to see if the new velocity should be positive
+// or negative.
+static short change_velocity(short current_velocity, short new_velocity) {
+    short resulting_velocity;
+
+    if( positive_number(current_velocity) ) {
+        resulting_velocity = invert_velocity(new_velocity);
+    }
+    else {
+        resulting_velocity = new_velocity;
+    }
+    return resulting_velocity;
+}
+
+static bool positive_number(short number) {
+    u16 negative_bit_mask = 0x8000;
+    bool positive_number = true;
+    if(number & negative_bit_mask) positive_number = false;
+    return positive_number;
 }
 
 static short invert_velocity(short velocity) {
@@ -227,5 +362,13 @@ static void handle_score(ball* ball1) {
     ball1->y_cord = BALL_STARTING_Y_CORD;
     ball1->x_velocity = 1;
     ball1->y_velocity = 0;
+}
+
+static bool check_exit(u16 controller_device_id) {
+    buttons controller = read_controller(controller_device_id);
+    bool exit = false;
+
+    if(controller.select) exit = true;
+    return exit;
 }
 
