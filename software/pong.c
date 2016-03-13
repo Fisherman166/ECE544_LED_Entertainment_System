@@ -31,14 +31,24 @@ typedef struct {
 
 typedef enum {NONE, BOUNDRY, PADDLE, SCORE} collision_type;
 
+//*****************************************************************************
+// Private functions
+//*****************************************************************************
 static collision_type check_collision(ball*, paddle*, paddle*);
 static bool check_paddle_collision(ball*, paddle*);
-static void move_ball(ball*, paddle*, paddle*);
+static bool move_ball(ball*, paddle*, paddle*);
 static short invert_velocity(short);
 static void move_paddle(paddle*);
 static void draw_paddle(paddle*);
-static void update_screen(paddle*, paddle*);
+static void update_screen(ball*, paddle*, paddle*);
 static bool check_gametick(u32, u32);
+static void handle_score(ball*);
+
+//*****************************************************************************
+// Global variables
+//*****************************************************************************
+static u8 player1_score = 0;
+static u8 player2_score = 0;
 
 void run_pong(u32* time_msecs) {
     paddle player1 = {CONTROLLER1_DEV_ID,
@@ -55,6 +65,7 @@ void run_pong(u32* time_msecs) {
                   0};
 
     u32 last_msecs_updated = 0;
+    bool player_scored = false;
 
     for(;;) {
     	// Handle time rollover case
@@ -65,8 +76,13 @@ void run_pong(u32* time_msecs) {
     		last_msecs_updated = *time_msecs;
     		move_paddle(&player1);
             //move_paddle(&player2);
-            move_ball(&ball1, &player1, &player2);
-    		update_screen(&player1, &player2);
+            player_scored = move_ball(&ball1, &player1, &player2);
+            
+            if(player_scored) {
+                handle_score(&ball1);
+                player_scored = false;
+            }
+    		update_screen(&ball1, &player1, &player2);
     	}
     }
 }
@@ -87,12 +103,12 @@ static collision_type check_collision(ball* check_ball, paddle* player1,
     if(check_ball->x_cord >= MAX_X_CORD) collision = SCORE;
     else if(check_ball->x_cord <= 0) collision = SCORE;
 
-    // Check for paddle collision
-    if( check_ball->x_cord == player1->x_cord ) {
+    // Check for the ball hitting the square just before the paddle
+    if( check_ball->x_cord == (player1->x_cord + 1) ) {
         if( check_paddle_collision(check_ball, player1) )
             collision = PADDLE;
     }
-    if( check_ball->x_cord == player2->x_cord ) {
+    else if( check_ball->x_cord == (player2->x_cord - 1) ) {
         if( check_paddle_collision(check_ball, player2) )
             collision = PADDLE;
     }
@@ -106,8 +122,9 @@ static bool check_paddle_collision(ball* check_ball, paddle* check_paddle) {
     return collision;
 }
 
-static void move_ball(ball* ball1, paddle* player1, paddle* player2) {
+static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
     collision_type collision = check_collision(ball1, player1, player2);
+    bool scored = (collision == SCORE);
 
     if(collision == BOUNDRY) {
         ball1->y_velocity = invert_velocity(ball1->y_velocity);
@@ -118,6 +135,7 @@ static void move_ball(ball* ball1, paddle* player1, paddle* player2) {
     
     ball1->x_cord += ball1->x_velocity;
     ball1->y_cord += ball1->y_velocity;
+    return scored;
 }
 
 static short invert_velocity(short velocity) {
@@ -179,9 +197,12 @@ static void draw_paddle(paddle* paddle_to_draw) {
     }
 }
 
-static void update_screen(paddle* player1_paddle, paddle* player2_paddle) {
+static void update_screen(ball* ball1, paddle* player1_paddle, paddle* player2_paddle) {
 	draw_paddle(player1_paddle);
 	draw_paddle(player2_paddle);
+    LEDPANEL_writepixel(ball1->x_cord,
+                        ball1->y_cord,
+                        WHITE);
 	LEDPANEL_updatepanel();
 }
 
@@ -196,3 +217,15 @@ static bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
 
     return retval;
 }
+
+static void handle_score(ball* ball1) {
+    if(ball1->x_cord >= MAX_X_CORD) player1_score++;
+    else player2_score++;
+
+    // Reset the ball
+    ball1->x_cord = BALL_STARTING_X_CORD;
+    ball1->y_cord = BALL_STARTING_Y_CORD;
+    ball1->x_velocity = 1;
+    ball1->y_velocity = 0;
+}
+
