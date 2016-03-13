@@ -40,7 +40,7 @@ typedef struct {
 // Private functions
 //*****************************************************************************
 static collision_type check_collision(ball*, paddle*, paddle*);
-static bool check_paddle_collision(ball*, paddle*);
+static collision_type check_paddle_collision(ball*, paddle*);
 static bool move_ball(ball*, paddle*, paddle*);
 static short change_velocity(short, short);
 static bool positive_number(short);
@@ -84,10 +84,10 @@ void run_pong(u32* time_msecs) {
     	if( check_gametick(*time_msecs, last_msecs_updated) ) {
     		last_msecs_updated = *time_msecs;
             
-            if( check_exit(player1->controller_device_id) ) break;
+            if( check_exit(player1.controller_device_id) ) break;
 
     		move_paddle(&player1);
-            move_paddle(&player2)
+            move_paddle(&player2);
             player_scored = move_ball(&ball1, &player1, &player2);
             
             if(player_scored) {
@@ -116,12 +116,32 @@ static collision_type check_collision(ball* check_ball, paddle* player1,
     else if(check_ball->x_cord <= 0) collision = SCORE2;
 
     // Check for the ball hitting the square just before the paddle
-    if( check_ball->x_cord == (player1->x_cord + 1) ) {
-        collision = check_paddle_collision(check_ball, player1);
+    if( check_ball->x_velocity == -2) {
+    	if( check_ball->x_cord == (player1->x_cord + 2) ) {
+    	    collision = check_paddle_collision(check_ball, player1);
+    	} else if ( check_ball->x_cord == (player1->x_cord + 1) ) {
+    	    collision = check_paddle_collision(check_ball, player1);
+    	}
     }
-    else if( check_ball->x_cord == (player2->x_cord - 1) ) {
-        collision = check_paddle_collision(check_ball, player2);
+    else if( check_ball->x_velocity == -1) {
+    	if( check_ball->x_cord == (player1->x_cord + 1) ) {
+    	    collision = check_paddle_collision(check_ball, player1);
+    	}
     }
+    else if( check_ball->x_velocity == 2) {
+    	if( check_ball->x_cord == (player2->x_cord - 2) ) {
+    	    collision = check_paddle_collision(check_ball, player2);
+    	}
+    	else if( check_ball->x_cord == (player2->x_cord - 1) ) {
+    	    collision = check_paddle_collision(check_ball, player2);
+    	}
+    }
+    else {
+    	if( check_ball->x_cord == (player2->x_cord - 1) ) {
+    	    collision = check_paddle_collision(check_ball, player2);
+    	}
+    }
+
     return collision;
 }
 
