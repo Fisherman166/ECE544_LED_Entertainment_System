@@ -18,7 +18,7 @@
 
 typedef enum {NONE, BOUNDRY, PADDLE_PIXEL1, PADDLE_PIXEL2, PADDLE_PIXEL3,
               PADDLE_PIXEL4, PADDLE_PIXEL5, SCORE1, SCORE2} collision_type;
-typedef enum {STRAIGHT, OVER1_UP1, OVER2_UP1} velocities;
+typedef enum {STRAIGHT, OVER1_UP1, OVER2_UP1, OVER1_DOWN1, OVER2_DOWN1} velocities;
 
 typedef struct {
     u16 controller_device_id;
@@ -193,12 +193,12 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
         if(ball1->velocity == STRAIGHT) {
             switch(collision) {
                 case PADDLE_PIXEL1:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
                     ball1->y_velocity = 1;
                     ball1->velocity = OVER2_UP1;
                     break;
                 case PADDLE_PIXEL2:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
                     ball1->y_velocity = 1;
                     ball1->velocity = OVER1_UP1;
                     break;
@@ -208,12 +208,12 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
                     ball1->velocity = STRAIGHT;
                     break;
                 case PADDLE_PIXEL4:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
                     ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
                     ball1->velocity = OVER1_UP1;
                     break;
                 case PADDLE_PIXEL5:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
                     ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
                     ball1->velocity = OVER2_UP1;
                     break;
@@ -222,7 +222,7 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
         else if(ball1->velocity == OVER1_UP1) {
             switch(collision) {
                 case PADDLE_PIXEL1:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
                     ball1->y_velocity = 1;
                     ball1->velocity = OVER2_UP1;
                     break;
@@ -232,7 +232,7 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
                     ball1->velocity = OVER2_UP1;
                     break;
                 case PADDLE_PIXEL3:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
                     ball1->y_velocity = 1;
                     ball1->velocity = OVER1_UP1;
                     break;
@@ -243,12 +243,70 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
                     break;
                 case PADDLE_PIXEL5:
                     ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
-                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
-                    ball1->velocity = OVER1_UP1;
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER1_DOWN1;
+                    break;
+            }
+        }
+        else if(ball1->velocity == OVER1_DOWN1) {
+            switch(collision) {
+                case PADDLE_PIXEL1:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL2:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 0;
+                    ball1->velocity = STRAIGHT;
+                    break;
+                case PADDLE_PIXEL3:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER2_DOWN1;
+                    break;
+                case PADDLE_PIXEL4:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER2_DOWN1;
+                    break;
+                case PADDLE_PIXEL5:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER1_DOWN1;
                     break;
             }
         }
         else if(ball1->velocity == OVER2_UP1) {
+            switch(collision) {
+                case PADDLE_PIXEL1:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER1_UP1;
+                    break;
+                case PADDLE_PIXEL2:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = 1;
+                    ball1->velocity = OVER2_UP1;
+                    break;
+                case PADDLE_PIXEL3:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 0;
+                    ball1->velocity = STRAIGHT;
+                    break;
+                case PADDLE_PIXEL4:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER1_DOWN1;
+                    break;
+                case PADDLE_PIXEL5:
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER2_DOWN1;
+                    break;
+            }
+        }
+        else if(ball1->velocity == OVER2_DOWN1) {
             switch(collision) {
                 case PADDLE_PIXEL1:
                     ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
@@ -261,19 +319,19 @@ static bool move_ball(ball* ball1, paddle* player1, paddle* player2) {
                     ball1->velocity = OVER2_UP1;
                     break;
                 case PADDLE_PIXEL3:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
-                    ball1->y_velocity = 1;
-                    ball1->velocity = OVER2_UP1;
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = 0;
+                    ball1->velocity = STRAIGHT;
                     break;
                 case PADDLE_PIXEL4:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
-                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
-                    ball1->velocity = OVER1_UP1;
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER2_DOWN1;
                     break;
                 case PADDLE_PIXEL5:
-                    ball1->x_velocity = change_velocity(ball1->x_velocity, 2);
-                    ball1->y_velocity = change_velocity(ball1->y_velocity, 1);
-                    ball1->velocity = OVER2_UP1;
+                    ball1->x_velocity = change_velocity(ball1->x_velocity, 1);
+                    ball1->y_velocity = -1;
+                    ball1->velocity = OVER1_DOWN1;
                     break;
             }
         }
@@ -302,7 +360,7 @@ static short change_velocity(short current_velocity, short new_velocity) {
 static bool positive_number(short number) {
     u16 negative_bit_mask = 0x8000;
     bool positive_number = true;
-    if(number & negative_bit_mask) positive_number = false;
+    if(number < 0) positive_number = false;
     return positive_number;
 }
 
