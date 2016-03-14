@@ -9,8 +9,10 @@
 #include "main.h"
 #include "snake.h"
 #include "menu.h"
-#include "pong.h"
 #include "draw.h"
+#include "pong.h"
+#include "game_end.h"
+
 
 // IP instances
 XIntc interrupt_controller;
@@ -23,6 +25,8 @@ int main() {
 
     u8 current_game = CHOOSE_NUM;
 
+    u8 pong_winner;
+
     status = init_devices();
     if(status != XST_SUCCESS) PRINT("FAILED TO INIT DEVICES\n");
     else {
@@ -30,9 +34,18 @@ int main() {
       for(;;) {
         current_game = select_game(&timestamp_msecs);
 
-        if(current_game == SNAKE_NUM) run_snake(&timestamp_msecs);
-        else if(current_game == DRAW_NUM) run_draw(&timestamp_msecs);
-        else if(current_game == PONG_NUM) run_pong(&timestamp_msecs);
+        if(current_game == SNAKE_NUM) {
+        	run_snake(&timestamp_msecs);
+        	draw_game_end(GAME_OVER_NUM);
+        }
+        else if(current_game == DRAW_NUM) {
+        	run_draw(&timestamp_msecs);
+        }
+        else if(current_game == PONG_NUM) {
+        	pong_winner = run_pong(&timestamp_msecs);
+        	if (pong_winner == PLAYER1_WINS) draw_game_end(RED_WINS_NUM);
+        	else draw_game_end(BLUE_WINS_NUM);
+        }
 
       }
 
@@ -46,8 +59,11 @@ static XStatus init_devices() {
 
     init_platform();
 
-    // Initialize the NES controller
+    // Initialize the NES controllers
     status = NES_initialize(CONTROLLER1_DEV_ID, CONTROLLER1_BASE_ADDRESS);
+    if(status != XST_SUCCESS) return XST_FAILURE;
+
+    status = NES_initialize(CONTROLLER2_DEV_ID, CONTROLLER2_BASE_ADDRESS);
     if(status != XST_SUCCESS) return XST_FAILURE;
 
     //Initialize the LED panel

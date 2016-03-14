@@ -12,10 +12,13 @@
 #include "vivado_includes.h"
 #include "controller.h"
 
+#define PLAYER1_WINS 1
+#define PLAYER2_WINS 2
+
 //*****************************************************************************
 // Public Functions
 //*****************************************************************************
-void run_pong(u32*);
+u8 run_pong(u32*);
 
 #endif // PONG_H
 

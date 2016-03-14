@@ -48,8 +48,9 @@ static short invert_velocity(short);
 static void move_paddle(paddle*);
 static void draw_paddle(paddle*);
 static void update_screen(ball*, paddle*, paddle*);
+static void draw_score(u8, bool);
 static bool check_gametick(u32, u32);
-static void handle_score(ball*);
+static u8 handle_score(ball*);
 static bool check_exit(u16);
 
 //*****************************************************************************
@@ -58,7 +59,7 @@ static bool check_exit(u16);
 static u8 player1_score = 0;
 static u8 player2_score = 0;
 
-void run_pong(u32* time_msecs) {
+u8 run_pong(u32* time_msecs) {
     paddle player1 = {CONTROLLER1_DEV_ID,
                       PLAYER1_STARTING_X_CORD,
                       PADDLE_STARTING_Y_CORD,
@@ -75,6 +76,11 @@ void run_pong(u32* time_msecs) {
 
     u32 last_msecs_updated = 0;
     bool player_scored = false;
+    u8 game_status = 0;
+
+    // Reset the global variables
+    player1_score = 0;
+    player2_score = 0;
 
     for(;;) {
     	// Handle time rollover case
@@ -91,12 +97,17 @@ void run_pong(u32* time_msecs) {
             player_scored = move_ball(&ball1, &player1, &player2);
             
             if(player_scored) {
-                handle_score(&ball1);
+                game_status = handle_score(&ball1);
                 player_scored = false;
             }
     		update_screen(&ball1, &player1, &player2);
+
+    		// Someone won so exit game
+    		if(game_status != 0) break;
     	}
     }
+
+    return game_status;
 }
 
 //*****************************************************************************
@@ -149,11 +160,13 @@ static collision_type check_paddle_collision(ball* check_ball, paddle* check_pad
     collision_type collision = NONE;
 
     // Starting with the top pixel of the paddle
-    bool pixel1 = (check_ball->y_cord == check_paddle->top_of_paddle_y_cord);
+    bool pixel1 = (check_ball->y_cord == check_paddle->top_of_paddle_y_cord) ||
+    			  (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord + 1));
     bool pixel2 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 1));
     bool pixel3 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 2));
     bool pixel4 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 3));
-    bool pixel5 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 4));
+    bool pixel5 = (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 4)) ||
+    			  (check_ball->y_cord == (check_paddle->top_of_paddle_y_cord - 5));
 
     if(pixel1) collision = PADDLE_PIXEL1;
     else if(pixel2) collision = PADDLE_PIXEL2;
@@ -355,10 +368,34 @@ static void draw_paddle(paddle* paddle_to_draw) {
 static void update_screen(ball* ball1, paddle* player1_paddle, paddle* player2_paddle) {
 	draw_paddle(player1_paddle);
 	draw_paddle(player2_paddle);
+	draw_score(player1_score, true);
+	draw_score(player2_score, false);
+	// Draw the ball
     LEDPANEL_writepixel(ball1->x_cord,
                         ball1->y_cord,
                         WHITE);
 	LEDPANEL_updatepanel();
+}
+
+static void draw_score(u8 score, bool player1) {
+	u8 i;
+	u8 x_cord;
+	LED_COLORS color;
+
+	if(player1) {
+		x_cord = 5;
+		color = RED;
+	}
+	else {
+		x_cord = 23;
+		color = BLUE;
+	}
+
+	for(i = 0; i < score; i++) {
+		LEDPANEL_writepixel(x_cord + i,
+			                15,
+			                color);
+	}
 }
 
 //*****************************************************************************
@@ -373,15 +410,27 @@ static bool check_gametick(u32 current_msecs, u32 last_msecs_updated) {
     return retval;
 }
 
-static void handle_score(ball* ball1) {
-    if(ball1->x_cord >= MAX_X_CORD) player1_score++;
+static u8 handle_score(ball* ball1) {
+	const u8 max_score = 7;
+	u8 game_status = 0;
+	bool player1_scored = false;
+    if(ball1->x_cord >= MAX_X_CORD) {
+    	player1_score++;
+    	player1_scored = true;
+    }
     else player2_score++;
+
+    if(player1_score > max_score) game_status = PLAYER1_WINS;
+    else if(player2_score > max_score) game_status = PLAYER2_WINS;
 
     // Reset the ball
     ball1->x_cord = BALL_STARTING_X_CORD;
     ball1->y_cord = BALL_STARTING_Y_CORD;
-    ball1->x_velocity = 1;
+    if(player1_scored) ball1->x_velocity = 1;
+    else ball1->x_velocity = -1;
     ball1->y_velocity = 0;
+
+    return game_status;
 }
 
 static bool check_exit(u16 controller_device_id) {
