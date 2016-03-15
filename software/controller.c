@@ -4,6 +4,10 @@
 // Team: Sean Koppenhafer, Nathan Morelli, Jessica Bare
 // File: controller.c
 //
+// Implemnets universal function that reads the controller and creates a struct 
+// of all of the buttons that are currently pressed by the user. All games
+// use this function for controller input
+//
 //*****************************************************************************
 
 #include "controller.h"
@@ -22,6 +26,7 @@ buttons read_controller(u16 controller_device_id) {
 
     u8 controller_value = NES_read(controller_device_id);
 
+    // NES controller buttons are active low
     controller_value = ~controller_value;
 
     if(controller_value & right_button_mask) controller.right = true;

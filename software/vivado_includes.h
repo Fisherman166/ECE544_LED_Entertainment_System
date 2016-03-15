@@ -4,6 +4,10 @@
 // Team: Sean Koppenhafer, Nathan Morelli, Jessica Bare
 // File: vivado_includes.h
 //
+// A header file that includes everything that is Vivado related. Xparameter
+// defines, Vivado only header files and other Vivado only code is in this
+// file.
+//
 //*****************************************************************************
 
 #ifndef VIVADO_INCLUDES_H
