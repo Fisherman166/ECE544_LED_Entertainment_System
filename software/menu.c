@@ -4,11 +4,17 @@
 // Team: Sean Koppenhafer, Nathan Morelli, Jessica Bare
 // File: menu.c
 //
+// Implements the menu for game selection.  The user can scroll through images
+// representing each of the available games.  Once a game is selected, the 
+// user presses start to exit the menu and start the game.    
+//
 //*****************************************************************************
 
 #include "menu.h"
 
-
+//*****************************************************************************
+// Typedefs
+//*****************************************************************************
 typedef struct  {
     u8 y_cord;
     u8 x_cord;
@@ -16,17 +22,17 @@ typedef struct  {
 } menu_image;
 
 
-//*****************
-// Functions
-//*****************
+//*****************************************************************************
+// Private functions
+//*****************************************************************************
 static void draw_menu(menu_image*);
 static bool check_menutick(u32 , u32 );
 
 
 
-//*****************
+//*****************************************************************************
 // Menu Arrays
-//*****************
+//*****************************************************************************
 menu_image  choose_image [] = {
 { 0 , 3 , 7 },
 { 0 , 4 , 7 },
@@ -660,7 +666,9 @@ menu_image  draw_image [] = {
 { 0 , 0, 8 } 
 };
 
-
+//*****************************************************************************
+// Public functions
+//*****************************************************************************
 
 //*****************************************************************************
 // Reads controllers and updates menu screens on the LED panel
@@ -669,66 +677,71 @@ u8 select_game(u32* timestamp_msecs) {
   u8 current_menu = CHOOSE_NUM;
   buttons buttons_pressed;
   u32 screen_updated_at_msecs = 0;
-
+  
+  //Start by drawing the choose game menu image
   draw_menu(choose_image);
-
+  
+  //Next loop until a game is selected
   for(;;) {
     // Handle the timestamp rollover case
     if( *timestamp_msecs < screen_updated_at_msecs )  screen_updated_at_msecs = *timestamp_msecs;
 
-    // Update the state of the game on a gametick
+    // Update the state of the menu on a checkmenu tick
     if( check_menutick(*timestamp_msecs, screen_updated_at_msecs) ) {
       screen_updated_at_msecs = *timestamp_msecs;
 
-    buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
+      // Read the controller
+      buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
 
-    if(current_menu == CHOOSE_NUM) {
-        if(buttons_pressed.right) {
-          current_menu = SNAKE_NUM;
-          draw_menu(snake_image);
-        }
-        else if(buttons_pressed.left) {
-          current_menu = DRAW_NUM;
-          draw_menu(draw_image);
-        }
-    }
-    else if(current_menu == SNAKE_NUM) {
-        if(buttons_pressed.start) return SNAKE_NUM;
-        else if(buttons_pressed.right) {
-          current_menu = PONG_NUM;
-          draw_menu(pong_image);
-        }
-        else if(buttons_pressed.left) {
-          current_menu = DRAW_NUM;
-          draw_menu(draw_image);
-        }
-    }
-    else if(current_menu == PONG_NUM) {
-        if(buttons_pressed.start) return PONG_NUM;
-        else if(buttons_pressed.right) {
-          current_menu = DRAW_NUM;
-          draw_menu(draw_image);
-        }
-        else if(buttons_pressed.left) {
-          current_menu = SNAKE_NUM;
-          draw_menu(snake_image);
-        }
-    }
-    else if(current_menu == DRAW_NUM) {
-        if(buttons_pressed.start) return DRAW_NUM;
-        else if(buttons_pressed.right) {
-          current_menu = SNAKE_NUM;
-          draw_menu(snake_image);
-        }
-        else if(buttons_pressed.left) {
-          current_menu = PONG_NUM;
-          draw_menu(pong_image);
-        }
-    }
+      // Below we check the current state of the menu and the current buttons pressed
+      // If the left or right buttons are pressed the currently displayed game image 
+      // will be drawn.  Once the start button is pressed, the currently selected games
+      // number will be returned to the main loop which will start the appropriate game
+      if(current_menu == CHOOSE_NUM) {
+          if(buttons_pressed.right) {
+            current_menu = SNAKE_NUM;
+            draw_menu(snake_image);
+          }
+          else if(buttons_pressed.left) {
+            current_menu = DRAW_NUM;
+            draw_menu(draw_image);
+          }
+      }
+      else if(current_menu == SNAKE_NUM) {
+          if(buttons_pressed.start) return SNAKE_NUM;
+          else if(buttons_pressed.right) {
+            current_menu = PONG_NUM;
+            draw_menu(pong_image);
+          }
+          else if(buttons_pressed.left) {
+            current_menu = DRAW_NUM;
+            draw_menu(draw_image);
+          }
+      }
+      else if(current_menu == PONG_NUM) {
+          if(buttons_pressed.start) return PONG_NUM;
+          else if(buttons_pressed.right) {
+            current_menu = DRAW_NUM;
+            draw_menu(draw_image);
+          }
+          else if(buttons_pressed.left) {
+            current_menu = SNAKE_NUM;
+            draw_menu(snake_image);
+          }
+      }
+      else if(current_menu == DRAW_NUM) {
+          if(buttons_pressed.start) return DRAW_NUM;
+          else if(buttons_pressed.right) {
+            current_menu = SNAKE_NUM;
+            draw_menu(snake_image);
+          }
+          else if(buttons_pressed.left) {
+            current_menu = PONG_NUM;
+            draw_menu(pong_image);
+          }
+      }
     }
   }
-
-
 }
 
 
@@ -738,7 +751,8 @@ u8 select_game(u32* timestamp_msecs) {
 static void draw_menu(menu_image* current_menu) {
 
 	int i = 0;
-
+  
+  // Loop through each element in the array until you read the terminating color value
   while(current_menu[i].color != 8) {
     LEDPANEL_writepixel(current_menu[i].x_cord,
                         current_menu[i].y_cord,
@@ -747,6 +761,7 @@ static void draw_menu(menu_image* current_menu) {
     i++;
   }
 
+  // After array is written to LED memory send the update signal
   LEDPANEL_updatepanel();
 
 }
@@ -755,7 +770,7 @@ static void draw_menu(menu_image* current_menu) {
 // Returns true if one gametick has passed
 //*****************************************************************************
 static bool check_menutick(u32 current_msecs, u32 last_msecs_updated) {
-    const u32 msecs_between_update = 500;
+    const u32 msecs_between_update = 200;
     bool retval = false;
 
     if( (current_msecs - last_msecs_updated) > msecs_between_update ) retval = true;

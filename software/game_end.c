@@ -4,6 +4,13 @@
 // Team: Sean Koppenhafer, Nathan Morelli, Jessica Bare
 // File: game_end.c
 //
+// Implements the drawing of images on the LED panel informing the user
+// of the outcome of the current game.  Specifically, "Game Over" is displayed
+// after a snake came is lost and the winning player is displayed after 
+// each pong game concludes.  
+// 
+// These images will be displayed until the user presses the start button.
+//
 //*****************************************************************************
 
 #include "game_end.h"
@@ -362,6 +369,8 @@ game_end_image  blue_wins_image [] = {
 
 //*****************************************************************************
 // Draws game end image on the LED panel
+// 
+// The image number is passed to this function by the main loop.
 //*****************************************************************************
 void draw_game_end(u8 image) {
   int i = 0;
@@ -369,11 +378,13 @@ void draw_game_end(u8 image) {
   buttons buttons_pressed;
   bool hit_start = false;
   
+  // Check the current image number and point the current_image pointer 
+  // to the corresponding image array
   if(image == GAME_OVER_NUM) current_image = game_over_image;
   else if(image == BLUE_WINS_NUM) current_image = blue_wins_image;
   else if(image == RED_WINS_NUM) current_image = red_wins_image;
   
-
+  // Loop through each element in the array until you read the terminating color value
   while(current_image[i].color != 8) {
     LEDPANEL_writepixel(current_image[i].x_cord,
                         current_image[i].y_cord,
@@ -382,8 +393,10 @@ void draw_game_end(u8 image) {
     i++;
   }
 
+  // After array is written to LED memory send the update signal
   LEDPANEL_updatepanel();
   
+  //Wait until the user presses the start button
   while(!hit_start) {
 
     buttons_pressed = read_controller(CONTROLLER1_DEV_ID);
