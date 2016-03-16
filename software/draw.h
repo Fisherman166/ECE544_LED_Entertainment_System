@@ -19,7 +19,9 @@
 #define DRAW_MIN_Y      0       //minimum y index
 #define DRAW_MAX_Y      15      //maximum y index
 
-//enum for colors of the led panel 3'b RGB
+// enum for colors of the led panel 3'b RGB
+// this matches the color encoding 3'b000=off ... 3'b111=white except for move
+// move allows the user to move the pencil without drawing
 typedef enum {off, blue, green, teal, red, purple, yellow, white, move} color;
 
 

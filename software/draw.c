@@ -88,26 +88,30 @@ void run_draw(u32* timestamp_msecs)
 */
 bool do_move_pencil()
 {
-    bool change = false;
+    bool change = false;    //tracks if the user changed the pencil location
     
+    //user pressed up button
     if(draw_buttons.up && (pencil_y < DRAW_MAX_Y))
     {
         pencil_y = pencil_y + 1;
         change = true;
     }
     
+    //user pressed down button
     if(draw_buttons.down && (pencil_y > DRAW_MIN_Y))
     {
         pencil_y = pencil_y - 1;
         change = true;
     }
     
+    //user pressed right button
     if(draw_buttons.right && (pencil_x < DRAW_MAX_X))
     {
         pencil_x = pencil_x + 1;
         change = true;
     }
     
+    //user pressed left button
     if(draw_buttons.left && (pencil_x > DRAW_MIN_X))
     {
         pencil_x = pencil_x - 1;
@@ -126,6 +130,7 @@ bool do_move_pencil()
 */
 void do_color_pencil(bool new_loc)
 {   
+    //Button A rotates through colors
     if(draw_buttons.A)
     {
         if(pencil_color < move)
@@ -134,6 +139,7 @@ void do_color_pencil(bool new_loc)
             pencil_color = off;
     }
     
+    //Button B changes to move
     if(draw_buttons.B)
     {
             if(pencil_color > off)
@@ -142,6 +148,7 @@ void do_color_pencil(bool new_loc)
                 pencil_color = move;
     }
     
+    //only save the color if the pencil is not in move
     if(pencil_color != move)
         draw_array[pencil_y][pencil_x] = pencil_color;
     
